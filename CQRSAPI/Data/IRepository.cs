@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace CQRSAPI.Data
 {
@@ -12,10 +9,6 @@ namespace CQRSAPI.Data
     {
 
         Task<T> AddAsync(
-            T item, 
-            CancellationToken cancellationToken);
-
-        Task<int> DeleteAsync(
             T item, 
             CancellationToken cancellationToken);
 

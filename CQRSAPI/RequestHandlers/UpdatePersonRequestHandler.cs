@@ -4,7 +4,6 @@ using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Responses;
-using Microsoft.EntityFrameworkCore;
 using CQRSAPI.Data;
 
 namespace CQRSAPI.RequestHandlers

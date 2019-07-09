@@ -16,7 +16,7 @@ namespace CQRSAPI.Data
         private readonly string _connectionString;
         private readonly string _prefix;
 
-        public string TableName => string.Format("{0}.People", string.IsNullOrEmpty(_prefix) ? "dbo" : _prefix);
+        public string TableName => $"{(string.IsNullOrEmpty(_prefix) ? "dbo" : _prefix)}.People";
 
         public string ConnectionString => (string.IsNullOrEmpty(_connectionString) ? Startup.LocalTestConnectionString : _connectionString);
 
@@ -72,11 +72,6 @@ namespace CQRSAPI.Data
                     $"FETCH NEXT {pageSize} ROWS ONLY");
                 return selectResults.ToList();
             }
-        }
-
-        public async Task<int> DeleteAsync(Person item, CancellationToken cancellationToken)
-        {
-            return (await DeleteAsync(item.Id, cancellationToken));
         }
 
         public async Task<int> DeleteAsync(int id, CancellationToken cancellationToken)

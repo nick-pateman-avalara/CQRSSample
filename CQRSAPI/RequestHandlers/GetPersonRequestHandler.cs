@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;

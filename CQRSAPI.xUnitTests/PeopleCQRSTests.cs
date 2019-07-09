@@ -5,7 +5,6 @@ using CQRSAPI.RequestHandlers;
 using CQRSAPI.Requests;
 using CQRSAPI.Responses;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -64,7 +63,7 @@ namespace CQRSAPI.xUnitTests
 
             Person person = new Person()
             {
-                FirstName = String.Empty,
+                FirstName = string.Empty,
                 LastName = Guid.NewGuid().ToString(),
                 Age = _rnd.Next(1, 101)
             };
