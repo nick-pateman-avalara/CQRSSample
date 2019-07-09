@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,7 @@ namespace CQRSAPI.Data
         Task<List<T>> FindAllAsync(
             int pageSize, 
             int pageNumber, 
+            NameValueCollection queryParams,
             CancellationToken cancellationToken);
 
         Task<bool> Exists(

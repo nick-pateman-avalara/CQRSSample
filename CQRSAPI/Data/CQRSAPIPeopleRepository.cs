@@ -1,11 +1,13 @@
 ﻿using CQRSAPI.Models;
 using Dapper;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CQRSAPI.Helpers;
 
 namespace CQRSAPI.Data
 {
@@ -40,8 +42,8 @@ namespace CQRSAPI.Data
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
-                string sqlQuery = $"INSERT INTO {TableName} (FirstName, LastName, Age) " +
-                                  "VALUES(@FirstName, @LastName, @Age); " +
+                string sqlQuery = $"INSERT INTO {TableName} " +
+                                  "VALUES (@FirstName, @LastName, @Age); " +
                                   "SELECT SCOPE_IDENTITY()";
                 int id = await db.ExecuteScalarAsync<int>(sqlQuery, item);
                 item.Id = id;
@@ -62,12 +64,17 @@ namespace CQRSAPI.Data
         public async Task<List<Person>> FindAllAsync(
             int pageSize,
             int pageNumber,
+            NameValueCollection queryParams,
             CancellationToken cancellationToken)
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
+                string wherePart = QueryHelpers.Generate<Person>(queryParams);
+
+                //dynamically generate where queryParams
                 int offset = pageSize * (pageNumber - 1);
                 IEnumerable<Person> selectResults = await db.QueryAsync<Person>($"SELECT * FROM {TableName} " +
+                    (string.IsNullOrEmpty(wherePart) ? string.Empty : wherePart) +
                     $"ORDER BY Id OFFSET {offset} ROWS " +
                     $"FETCH NEXT {pageSize} ROWS ONLY");
                 return selectResults.ToList();

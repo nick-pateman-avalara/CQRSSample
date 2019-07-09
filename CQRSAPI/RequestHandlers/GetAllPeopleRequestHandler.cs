@@ -32,6 +32,7 @@ namespace CQRSAPI.RequestHandlers
                 List<Person> allPeople = await _peopleRepository.FindAllAsync(
                     request.PageSize,
                     request.PageNumber,
+                    request.QueryParams,
                     cancellationToken);
                 return (new GetAllPeopleResponse() { Success = true, Result = allPeople });
             }

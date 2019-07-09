@@ -6,6 +6,11 @@ using CQRSAPI.Models;
 using CQRSAPI.Requests;
 using CQRSAPI.Responses;
 using CQRSAPI.Extensions;
+using Microsoft.AspNetCore.Http.Extensions;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Web;
+using CQRSAPI.Helpers;
 
 namespace CQRSAPI.Controllers
 {
@@ -32,7 +37,8 @@ namespace CQRSAPI.Controllers
             GetAllPeopleRequest request = new GetAllPeopleRequest()
             {
                 PageSize = pageSize,
-                PageNumber = pageNumber
+                PageNumber = pageNumber,
+                QueryParams = QueryHelpers.GetQueryFromRequest(HttpContext.Request, "pageSize", "pageNumber")
             };
 
             GetAllPeopleResponse getAllPeopleResponse = await _mediator.Send(request);
