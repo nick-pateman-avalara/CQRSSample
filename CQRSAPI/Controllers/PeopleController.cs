@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using MediatR;
@@ -8,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using CQRSAPI.Models;
 using CQRSAPI.Requests;
 using CQRSAPI.Responses;
+using CQRSAPI.Extensions;
 
 namespace CQRSAPI.Controllers
 {
@@ -44,10 +42,7 @@ namespace CQRSAPI.Controllers
             }
             else
             {
-                List<string> errors = getAllPeopleResponse.Errors
-                    .Select(me => me.ErrorMessage)
-                    .ToList();
-                return (BadRequest(errors));
+                return (BadRequest(getAllPeopleResponse.Errors.ToStringList()));
             }
         }
 
@@ -59,13 +54,13 @@ namespace CQRSAPI.Controllers
         {
             if (!id.HasValue)
             {
-                return (BadRequest());
+                return (BadRequest("Missing id parameter."));
             }
 
             Person person = await _mediator.Send(new GetPersonRequest() { Id = id.Value });
             if (person == null)
             {
-                return (NotFound());
+                return (NotFound($"Person with Id {id} not found."));
             }
 
             return (Ok(person));
@@ -86,14 +81,13 @@ namespace CQRSAPI.Controllers
                 }
                 else
                 {
-                    List<string> errors = createResponse.Errors
-                        .Select(me => me.ErrorMessage)
-                        .ToList();
-                    return (BadRequest(errors));
+                    return (BadRequest(createResponse.Errors.ToStringList()));
                 }
             }
-
-            return (BadRequest());
+            else
+            {
+                return (BadRequest("Request body Json data could not be deserialised to Person."));
+            }
         }
 
         [HttpPost("{id}"), 
@@ -106,7 +100,7 @@ namespace CQRSAPI.Controllers
         {
             if(person.Id != id)
             {
-                return(BadRequest());
+                return(BadRequest("Missing id parameter."));
             }
 
             if (ModelState.IsValid)
@@ -120,20 +114,17 @@ namespace CQRSAPI.Controllers
                 {
                     if (updateResponse.Errors != null)
                     {
-                        List<string> errors = updateResponse.Errors
-                            .Select(me => me.ErrorMessage)
-                            .ToList();
-                        return(BadRequest(errors));
+                        return(BadRequest(updateResponse.Errors.ToStringList()));
                     }
                     else
                     {
-                        return(NotFound());
+                        return(NotFound($"Person with Id {id} not found."));
                     }
                 }
             }
             else
             {
-                return (BadRequest());
+                return (BadRequest("Request body Json data could not be deserialised to Person."));
             }
         }
 
@@ -143,7 +134,7 @@ namespace CQRSAPI.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             bool deleted = await _mediator.Send(new DeletePersonRequest() { Id = id });
-            return (deleted ? (IActionResult)Ok() : NotFound());
+            return (deleted ? (IActionResult)Ok() : NotFound($"Person with Id {id} not found."));
         }
 
     }
