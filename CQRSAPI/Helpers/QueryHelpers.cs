@@ -46,7 +46,7 @@ namespace CQRSAPI.Helpers
             StringBuilder stringBuilder = new StringBuilder("WHERE ");
             foreach (KeyValuePair<string, string> param in queryParams)
             {
-                switch (param.Key)
+                switch (param.Key.ToLower())
                 {
                     case "op":
                     {
