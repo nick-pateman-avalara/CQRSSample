@@ -3,6 +3,7 @@ using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Models;
+using CQRSAPI.Data;
 
 namespace CQRSAPI.RequestHandlers
 {
@@ -10,21 +11,19 @@ namespace CQRSAPI.RequestHandlers
     public class DeletePersonRequestHandler : IRequestHandler<DeletePersonRequest, bool>
     {
 
-        private readonly PeopleContext _peopleContext;
+        private readonly IRepository<Person> _peopleRepository;
 
-        public DeletePersonRequestHandler(PeopleContext peopleContext)
+        public DeletePersonRequestHandler(IRepository<Person> peopleRepository)
         {
-            _peopleContext = peopleContext;
+            _peopleRepository = peopleRepository;
         }
   
         public async Task<bool> Handle(DeletePersonRequest request, CancellationToken cancellationToken)
         {
-            if(_peopleContext.PersonExists(request.PersonId))
+            if(await _peopleRepository.Exists(request.Id, cancellationToken))
             {
-                Person person = await _peopleContext.People.FindAsync(request.PersonId);
-                _peopleContext.People.Remove(person);
-                await _peopleContext.SaveChangesAsync(cancellationToken);
-                return (true);
+                int rowsAffected = await _peopleRepository.DeleteAsync(request.Id, cancellationToken);
+                return (rowsAffected == 1);
             }
             else
             {

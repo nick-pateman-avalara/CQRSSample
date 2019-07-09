@@ -4,7 +4,7 @@ namespace CQRSAPI.Models
     public class Person
     {
 
-        public int PersonId { get; set; }
+        public int Id { get; set; }
 
         public string FirstName { get; set; }
 

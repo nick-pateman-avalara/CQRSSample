@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using CQRSAPI.Models;
-using CQRSAPI.Queries;
 using CQRSAPI.Requests;
 using CQRSAPI.Responses;
 
@@ -26,28 +25,30 @@ namespace CQRSAPI.Controllers
         }
 
         [HttpGet, 
-         ProducesResponseType((int)HttpStatusCode.OK)]
+         ProducesResponseType((int)HttpStatusCode.OK),
+         ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetAllPeople(
-            string firstName = "",
-            string lastName = "",
-            string age = "",
             int pageSize = 50,
             int pageNumber = 1)
         {
-            if (pageNumber < 1) return (BadRequest());
-
-            //need to turn age query parameter into integer comparison query...
-
             GetAllPeopleRequest request = new GetAllPeopleRequest()
             {
                 PageSize = pageSize,
-                PageNumber = pageNumber - 1,
-                FirstName = firstName,
-                LastName = lastName,
-                Age = String.IsNullOrEmpty(age) ? null : new IntegerQuery(age)
+                PageNumber = pageNumber
             };
 
-            return (Ok(await _mediator.Send(request)));
+            GetAllPeopleResponse getAllPeopleResponse = await _mediator.Send(request);
+            if(getAllPeopleResponse.Success)
+            {
+                return (Ok(getAllPeopleResponse.Result));
+            }
+            else
+            {
+                List<string> errors = getAllPeopleResponse.Errors
+                    .Select(me => me.ErrorMessage)
+                    .ToList();
+                return (BadRequest(errors));
+            }
         }
 
         [HttpGet("{id}"), 
@@ -61,7 +62,7 @@ namespace CQRSAPI.Controllers
                 return (BadRequest());
             }
 
-            Person person = await _mediator.Send(new GetPersonRequest() { PersonId = id.Value });
+            Person person = await _mediator.Send(new GetPersonRequest() { Id = id.Value });
             if (person == null)
             {
                 return (NotFound());
@@ -103,7 +104,7 @@ namespace CQRSAPI.Controllers
             int id,
             [FromBody] Person person)
         {
-            if(person.PersonId != id)
+            if(person.Id != id)
             {
                 return(BadRequest());
             }
@@ -141,7 +142,7 @@ namespace CQRSAPI.Controllers
          ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            bool deleted = await _mediator.Send(new DeletePersonRequest() { PersonId = id });
+            bool deleted = await _mediator.Send(new DeletePersonRequest() { Id = id });
             return (deleted ? (IActionResult)Ok() : NotFound());
         }
 

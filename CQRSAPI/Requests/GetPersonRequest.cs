@@ -7,7 +7,7 @@ namespace CQRSAPI.Requests
     public class GetPersonRequest : IRequest<Person>
     {
 
-        public int PersonId { get; set; }
+        public int Id { get; set; }
 
     }
 

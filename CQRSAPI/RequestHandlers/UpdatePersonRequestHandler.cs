@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Responses;
 using Microsoft.EntityFrameworkCore;
+using CQRSAPI.Data;
 
 namespace CQRSAPI.RequestHandlers
 {
@@ -12,14 +13,14 @@ namespace CQRSAPI.RequestHandlers
     public class UpdatePersonRequestHandler : IRequestHandler<UpdatePersonRequest, UpdatePersonResponse>
     {
 
-        private readonly PeopleContext _peopleContext;
+        private readonly IRepository<Person> _peopleRepository;
         private readonly IPersonValidator _personValidator;
 
         public UpdatePersonRequestHandler(
-            PeopleContext peopleContext,
+            IRepository<Person> peopleRepository,
             IPersonValidator personValidator)
         {
-            _peopleContext = peopleContext;
+            _peopleRepository = peopleRepository;
             _personValidator = personValidator;
         }
 
@@ -30,12 +31,10 @@ namespace CQRSAPI.RequestHandlers
                 return new UpdatePersonResponse() { Success = false, Errors = errors };
             }
 
-            Person person = await _peopleContext.People
-                .FirstOrDefaultAsync(m => m.PersonId == request.Person.PersonId, cancellationToken);
-            if (person != null)
+            int affectedRows = await _peopleRepository.UpdateAsync(request.Person, cancellationToken);
+            if (affectedRows > 0)
             {
-                _peopleContext.Entry(person).CurrentValues.SetValues(request.Person);
-                return (new UpdatePersonResponse() { Success = await _peopleContext.SaveChangesAsync(cancellationToken) > 0 });
+                return (new UpdatePersonResponse() { Success = true });
             }
             else
             {

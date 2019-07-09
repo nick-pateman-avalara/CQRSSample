@@ -1,4 +1,5 @@
-﻿using CQRSAPI.Extensions;
+﻿using CQRSAPI.Data;
+using CQRSAPI.Extensions;
 using CQRSAPI.Models;
 using CQRSAPI.RequestHandlers;
 using CQRSAPI.Requests;
@@ -19,7 +20,7 @@ namespace CQRSAPI.xUnitTests
     {
 
         private Random _rnd;
-        private PeopleContext _peopleContext;
+        private CqrsApiPeopleRepository _peopleRepository;
         private Person _created;
 
         private void Initialise()
@@ -29,14 +30,10 @@ namespace CQRSAPI.xUnitTests
             DbConnectionStringBuilder dbConnectionStringBuilder = new DbConnectionStringBuilder
             {
                 { "Data Source", @"." },
-                { "Initial Catalog", "CQRSAPI" },
+                { "Initial Catalog", "CQRSAPIDB" },
                 { "Integrated Security", "true" }
             };
-
-            DbContextOptionsBuilder<PeopleContext> optionsBuilder = new DbContextOptionsBuilder<PeopleContext>();
-            optionsBuilder.UseSqlServer(dbConnectionStringBuilder.ToString());
-            PeopleContext peopleContext = new PeopleContext(optionsBuilder.Options);
-            _peopleContext = peopleContext;
+            _peopleRepository = new CqrsApiPeopleRepository(dbConnectionStringBuilder.ToString());
         }
 
         [Fact]
@@ -52,7 +49,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleContext,
+                _peopleRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -73,7 +70,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleContext,
+                _peopleRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -97,15 +94,14 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleContext,
+                _peopleRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            List<ModelError> errors = createdPerson.Errors;
             Assert.True(!createdPerson.Success);
-            Assert.True(errors != null);
-            Assert.True(errors.Count == 1);
-            Assert.Contains("LastName", errors[0].ErrorMessage);
+            Assert.True(createdPerson.Errors != null);
+            Assert.True(createdPerson.Errors.Count == 1);
+            Assert.Contains("LastName", createdPerson.Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -121,15 +117,14 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleContext,
+                _peopleRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            List<ModelError> errors = createdPerson.Errors;
             Assert.True(!createdPerson.Success);
-            Assert.True(errors != null);
-            Assert.True(errors.Count == 1);
-            Assert.Contains("Age", errors[0].ErrorMessage);
+            Assert.True(createdPerson.Errors != null);
+            Assert.True(createdPerson.Errors.Count == 1);
+            Assert.Contains("Age", createdPerson.Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -145,15 +140,14 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleContext,
+                _peopleRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            List<ModelError> errors = createdPerson.Errors;
             Assert.True(!createdPerson.Success);
-            Assert.True(errors != null);
-            Assert.True(errors.Count == 1);
-            Assert.Contains("Age", errors[0].ErrorMessage);
+            Assert.True(createdPerson.Errors != null);
+            Assert.True(createdPerson.Errors.Count == 1);
+            Assert.Contains("Age", createdPerson.Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -167,8 +161,8 @@ namespace CQRSAPI.xUnitTests
                 _created != null, 
                 "Unit test cannot be run before creating a user.");
 
-            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleContext);
-            Person getPerson = await handler.Handle(new GetPersonRequest() { PersonId = _created.PersonId }, new CancellationToken());
+            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleRepository);
+            Person getPerson = await handler.Handle(new GetPersonRequest() { Id = _created.Id }, new CancellationToken());
 
             Assert.True(getPerson != null);
             Assert.True(getPerson.IsEqual(_created));
@@ -179,25 +173,58 @@ namespace CQRSAPI.xUnitTests
         {
             Initialise();
 
-            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleContext);
-            Person getPerson = await handler.Handle(new GetPersonRequest() { PersonId = 0 }, new CancellationToken());
+            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleRepository);
+            Person getPerson = await handler.Handle(new GetPersonRequest() { Id = 0 }, new CancellationToken());
 
             Assert.True(getPerson == null);
         }
 
         [Fact]
-        public async Task Given_GetAllPeopleCqrsRequest_When_RecordsAreInTheDatabase_Then_SuccessShouldBeReturnedWithAllPeopleRecords()
+        public async Task Given_GetAllPeopleCqrsRequest_When_RecordsAreInTheDatabase_AndPaginationParametersAreValid_Then_SuccessShouldBeReturnedWithAllPeopleRecords()
         {
             Initialise();
 
             //Make sure we have at least 1 record in the DB
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
-            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleContext);
-            List<Person> people = await handler.Handle(new GetAllPeopleRequest(), new CancellationToken());
+            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleRepository);
+            GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 50 }, new CancellationToken());
 
-            Assert.True(people != null);
-            Assert.True(people.Count > 0);
+            Assert.True(getAllPeople.Success);
+        }
+
+        [Fact]
+        public async Task Given_GetAllPeopleCqrsRequest_When_RecordsAreInTheDatabase_AndPageNumberIsInvalid_Then_SuccessShouldBeReturnedWithAllPeopleRecords()
+        {
+            Initialise();
+
+            //Make sure we have at least 1 record in the DB
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleRepository);
+            GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 0, PageSize = 50 }, new CancellationToken());
+
+            Assert.False(getAllPeople.Success);
+            Assert.True(getAllPeople.Errors != null);
+            Assert.True(getAllPeople.Errors.Count == 1);
+            Assert.Contains("PageNumber", getAllPeople.Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task Given_GetAllPeopleCqrsRequest_When_RecordsAreInTheDatabase_AndPageSizeIsInvalid_Then_SuccessShouldBeReturnedWithAllPeopleRecords()
+        {
+            Initialise();
+
+            //Make sure we have at least 1 record in the DB
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleRepository);
+            GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 0 }, new CancellationToken());
+
+            Assert.False(getAllPeople.Success);
+            Assert.True(getAllPeople.Errors != null);
+            Assert.True(getAllPeople.Errors.Count == 1);
+            Assert.Contains("PageSize", getAllPeople.Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -211,8 +238,8 @@ namespace CQRSAPI.xUnitTests
                 _created != null,
                 "Unit test cannot be run before creating a user.");
 
-            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleContext);
-            bool deleted = await handler.Handle(new DeletePersonRequest() { PersonId = _created.PersonId }, new CancellationToken());
+            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleRepository);
+            bool deleted = await handler.Handle(new DeletePersonRequest() { Id = _created.Id }, new CancellationToken());
 
             Assert.True(deleted);
         }
@@ -222,8 +249,8 @@ namespace CQRSAPI.xUnitTests
         {
             Initialise();
 
-            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleContext);
-            bool deleted = await handler.Handle(new DeletePersonRequest() { PersonId = 0 }, new CancellationToken());
+            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleRepository);
+            bool deleted = await handler.Handle(new DeletePersonRequest() { Id = 0 }, new CancellationToken());
 
             Assert.False(deleted);
         }

@@ -4,6 +4,7 @@ using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Models;
+using CQRSAPI.Data;
 
 namespace CQRSAPI.RequestHandlers
 {
@@ -11,17 +12,16 @@ namespace CQRSAPI.RequestHandlers
     public class GetPersonRequestHandler : IRequestHandler<GetPersonRequest, Person>
     {
 
-        private readonly PeopleContext _peopleContext;
+        private readonly IRepository<Person> _peopleRepository;
 
-        public GetPersonRequestHandler(PeopleContext peopleContext)
+        public GetPersonRequestHandler(IRepository<Person> peopleRepository)
         {
-            _peopleContext = peopleContext;
+            _peopleRepository = peopleRepository;
         }
-  
+
         public async Task<Person> Handle(GetPersonRequest request, CancellationToken cancellationToken)
         {
-            return await _peopleContext.People
-                .FirstOrDefaultAsync(m => m.PersonId == request.PersonId, cancellationToken);
+            return await _peopleRepository.FindAsync(request.Id, cancellationToken);
         }
 
     }

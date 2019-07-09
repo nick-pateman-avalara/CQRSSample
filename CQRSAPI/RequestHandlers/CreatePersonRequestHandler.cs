@@ -2,7 +2,7 @@ using MediatR;
 using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using CQRSAPI.Data;
 using CQRSAPI.Responses;
 using CQRSAPI.Models;
 
@@ -12,14 +12,14 @@ namespace CQRSAPI.RequestHandlers
     public class CreatePersonRequestHandler : IRequestHandler<CreatePersonRequest, CreatePersonResponse>
     {
 
-        private readonly PeopleContext _peopleContext;
+        private readonly IRepository<Person> _peopleRepository;
         private readonly IPersonValidator _personValidator;
 
         public CreatePersonRequestHandler(
-            PeopleContext peopleContext,
+            IRepository<Person> peopleRepository,
             IPersonValidator personValidator)
         {
-            _peopleContext = peopleContext;
+            _peopleRepository = peopleRepository;
             _personValidator = personValidator;
         }
   
@@ -30,9 +30,8 @@ namespace CQRSAPI.RequestHandlers
                 return new CreatePersonResponse() { Success = false, Errors = errors };
             }
 
-            EntityEntry<Person> addPerson = await _peopleContext.AddAsync(request.Person, cancellationToken);
-            await _peopleContext.SaveChangesAsync(cancellationToken);
-            return (new CreatePersonResponse() { Success = true, Result = addPerson.Entity });
+            Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
+            return (new CreatePersonResponse() { Success = true, Result = addPerson });
         }
 
     }

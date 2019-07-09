@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Reflection;
+using CQRSAPI.Data;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,30 +16,32 @@ namespace CQRSAPI
 {
     public class Startup
     {
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public static IConfiguration Configuration { get; private set; }
+
+        public static string LocalTestConnectionString
+        {
+            get
+            {
+                string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("LocalTest");
+                return (connectionString);
+            }
+        }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+            services.AddScoped<IRepository<Person>, CqrsApiPeopleRepository>();
             services.AddScoped<IMediator, Mediator>();
             services.AddScoped<IPersonValidator, PersonValidator>();
             services.AddTransient<ServiceFactory>(p => p.GetService);
             services.AddMediatorHandlers(typeof(Startup).GetTypeInfo().Assembly);
-
-            DbConnectionStringBuilder dbConnectionStringBuilder = new DbConnectionStringBuilder
-            {
-                { "Data Source", "." },
-                { "Initial Catalog", "CQRSAPI" },
-                { "Integrated Security", "true" }
-            };
-            string connectionString = dbConnectionStringBuilder.ToString();
-            services.AddDbContext<PeopleContext>(options => options.UseSqlServer(connectionString));
 
             services.AddSwaggerGen(c =>
             {

@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CQRSAPI", "CQRSAPI\CQRSAPI.csproj", "{E122A681-6E03-489E-83BF-B20F5A5D3E39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CQRSAPI.xUnitTests", "CQRSAPI.xUnitTests\CQRSAPI.xUnitTests.csproj", "{C54E4181-8A28-4491-8E8C-77B7A89CDC18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CQRSAPI.xUnitTests", "CQRSAPI.xUnitTests\CQRSAPI.xUnitTests.csproj", "{C54E4181-8A28-4491-8E8C-77B7A89CDC18}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "CQRSAPIDB", "CQRSAPIDB\CQRSAPIDB.sqlproj", "{AC69F0CC-C898-4755-96C4-01A0294B39B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,12 @@ Global
 		{C54E4181-8A28-4491-8E8C-77B7A89CDC18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C54E4181-8A28-4491-8E8C-77B7A89CDC18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C54E4181-8A28-4491-8E8C-77B7A89CDC18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC69F0CC-C898-4755-96C4-01A0294B39B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC69F0CC-C898-4755-96C4-01A0294B39B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC69F0CC-C898-4755-96C4-01A0294B39B8}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{AC69F0CC-C898-4755-96C4-01A0294B39B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC69F0CC-C898-4755-96C4-01A0294B39B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC69F0CC-C898-4755-96C4-01A0294B39B8}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,23 +1,15 @@
 using MediatR;
-using CQRSAPI.Models;
-using System.Collections.Generic;
-using CQRSAPI.Queries;
+using CQRSAPI.Responses;
 
 namespace CQRSAPI.Requests
 {
 
-    public class GetAllPeopleRequest : IRequest<List<Person>>
+    public class GetAllPeopleRequest : IRequest<GetAllPeopleResponse>
     {
 
         public int PageSize { get; set; }
 
         public int PageNumber { get; set; }
-
-        public string FirstName { get; set; }
-
-        public string LastName { get; set; }
-
-        public IntegerQuery Age { get; set; }
 
     }
 
