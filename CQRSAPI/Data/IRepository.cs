@@ -27,8 +27,8 @@ namespace CQRSAPI.Data
 
         Task<List<T>> FindAllAsync(
             int pageSize, 
-            int pageNumber, 
-            NameValueCollection queryParams,
+            int pageNumber,
+            List<KeyValuePair<string, string>> queryParams,
             CancellationToken cancellationToken);
 
         Task<bool> Exists(

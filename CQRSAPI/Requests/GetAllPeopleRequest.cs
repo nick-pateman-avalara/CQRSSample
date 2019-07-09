@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using MediatR;
 using CQRSAPI.Responses;
 
@@ -12,7 +12,7 @@ namespace CQRSAPI.Requests
 
         public int PageNumber { get; set; }
 
-        public NameValueCollection QueryParams { get; set; }
+        public List<KeyValuePair<string, string>> QueryParams { get; set; }
 
     }
 

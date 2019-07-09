@@ -64,19 +64,19 @@ namespace CQRSAPI.Data
         public async Task<List<Person>> FindAllAsync(
             int pageSize,
             int pageNumber,
-            NameValueCollection queryParams,
+            List<KeyValuePair<string, string>> queryParams,
             CancellationToken cancellationToken)
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
-                string wherePart = QueryHelpers.Generate<Person>(queryParams);
+                string wherePart = QueryHelpers.Generate<Person>(queryParams, out var outParams);
 
-                //dynamically generate where queryParams
                 int offset = pageSize * (pageNumber - 1);
                 IEnumerable<Person> selectResults = await db.QueryAsync<Person>($"SELECT * FROM {TableName} " +
                     (string.IsNullOrEmpty(wherePart) ? string.Empty : wherePart) +
                     $"ORDER BY Id OFFSET {offset} ROWS " +
-                    $"FETCH NEXT {pageSize} ROWS ONLY");
+                    $"FETCH NEXT {pageSize} ROWS ONLY",
+                    outParams.Count > 0 ? outParams : null);
                 return selectResults.ToList();
             }
         }

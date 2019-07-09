@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Web;
 using Microsoft.AspNetCore.Http;
 
 namespace CQRSAPI.Helpers
@@ -13,82 +10,124 @@ namespace CQRSAPI.Helpers
     public class QueryHelpers
     {
 
-        public static NameValueCollection GetQueryFromRequest(
+        public static List<KeyValuePair<string, string>> ExtractQueryParamsFromRequest(
             HttpRequest request,
             params string[] exclude)
         {
-            NameValueCollection queryParameters = HttpUtility.ParseQueryString(request.QueryString.ToString());
-            foreach (string exc in exclude)
+            string queryString = request.QueryString.ToString();
+            if (!string.IsNullOrEmpty((queryString)))
             {
-                queryParameters.Remove(exc);
+                List<KeyValuePair<string, string>> parameters = new List<KeyValuePair<string, string>>();
+                string[] valuePairs = request.QueryString.ToString().Substring(1).Split('&');
+                foreach (string pair in valuePairs)
+                {
+                    string[] valueParts = pair.Split('=');
+                    parameters.Add((new KeyValuePair<string, string>(valueParts[0], valueParts[1])));
+                }
+                return (parameters);
             }
-            return (queryParameters);
+            else
+            {
+                return (null);
+            }
         }
 
-        public static string Generate<T>(NameValueCollection query)
+        public static string Generate<T>(
+            List<KeyValuePair<string, string>> queryParams,
+            out Dictionary<string, object> outParams)
         {
-            if (query.Count == 0) return (string.Empty);
+            outParams = new Dictionary<string, object>();
 
-            int processed = 0;
+            if (queryParams == null || queryParams.Count == 0) return (string.Empty);
+
+            Dictionary<string, int> counters = new Dictionary<string, int>();
+
             Type inputType = typeof(T);
             StringBuilder stringBuilder = new StringBuilder("WHERE ");
-            foreach (string property in query.Keys)
+            foreach (KeyValuePair<string, string> param in queryParams)
             {
-                PropertyInfo propInfo = inputType.GetProperty(property, BindingFlags.Instance | BindingFlags.Public);
-                if (propInfo != null)
+                switch (param.Key)
                 {
-                    if (processed > 0)
+                    case "op":
                     {
-                        //Can we get any control over this from a query string?
-                        stringBuilder.Append("AND ");
-                    }
-
-                    bool needQuotes = propInfo.PropertyType == typeof(string);
-                    string value = query[property];
-                    string[] valueParts = value.Split('.');
-                    if (valueParts.Length == 2)
-                    {
-                        string op = string.Empty;
-                        switch (valueParts[0])
+                        if (IsValidOp(param.Value))
                         {
-                            case "eq":
-                            {
-                                op = "=";
-                                break;
-                            }
-                            case "lt":
-                            {
-                                op = "<";
-                                break;
-                            }
-                            case "gt":
-                            {
-                                op = ">";
-                                break;
-                            }
-                            case "like":
-                            {
-                                op = "LIKE";
-                                break;
-                            }
+                            stringBuilder.Append($"{param.Value.ToUpper()} ");
                         }
 
-                        stringBuilder.Append(needQuotes
-                            ? $"{propInfo.Name} {op} '{valueParts[1]}'"
-                            : $"{propInfo.Name} {op} {valueParts[1]}");
+                        break;
                     }
-                    else
+                    default:
                     {
-                        stringBuilder.Append(needQuotes
-                            ? $"{propInfo.Name} = '{valueParts[0]}'"
-                            : $"{propInfo.Name} = {valueParts[0]}");
-                    }
+                        PropertyInfo propInfo = inputType.GetProperty(param.Key, BindingFlags.Instance | BindingFlags.Public);
+                        if (propInfo != null)
+                        {
+                            string[] valueParts = param.Value.Split('.');
+                            if (valueParts.Length == 2)
+                            {
+                                string op = string.Empty;
+                                switch (valueParts[0])
+                                {
+                                    case "eq":
+                                    {
+                                        op = "=";
+                                        break;
+                                    }
+                                    case "lt":
+                                    {
+                                        op = "<";
+                                        break;
+                                    }
+                                    case "gt":
+                                    {
+                                        op = ">";
+                                        break;
+                                    }
+                                    case "like":
+                                    {
+                                        op = "LIKE";
+                                        break;
+                                    }
+                                }
 
-                    processed += 1;
+                                int counter = IncrementCounter(
+                                    propInfo.Name,
+                                    counters);
+                                outParams.Add($"{propInfo.Name}{counter}", $"{valueParts[1]}");
+                                stringBuilder.Append($"{propInfo.Name} {op} @{propInfo.Name}{counter}");
+                            }
+                        }
+                        break;
+                    }
                 }
+                stringBuilder.Append(' ');
             }
-            stringBuilder.Append(' ');
             return (stringBuilder.ToString());
+        }
+
+        private static int IncrementCounter(
+            string name,
+            Dictionary<string, int> counters)
+        {
+            if (counters.ContainsKey(name))
+            {
+                int curValue = counters[name];
+                counters.Remove(name);
+                curValue += 1;
+                counters.Add(name, curValue);
+                return (curValue);
+            }
+            else
+            {
+                counters.Add(name, 1);
+                return (1);
+            }
+        }
+
+        private static  bool IsValidOp(string op)
+        {
+            return (op.ToLower() == "and" ||
+                    op.ToLower() == "or");
         }
 
     }

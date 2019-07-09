@@ -38,7 +38,7 @@ namespace CQRSAPI.Controllers
             {
                 PageSize = pageSize,
                 PageNumber = pageNumber,
-                QueryParams = QueryHelpers.GetQueryFromRequest(HttpContext.Request, "pageSize", "pageNumber")
+                QueryParams = QueryHelpers.ExtractQueryParamsFromRequest(HttpContext.Request, "pageSize", "pageNumber")
             };
 
             GetAllPeopleResponse getAllPeopleResponse = await _mediator.Send(request);
