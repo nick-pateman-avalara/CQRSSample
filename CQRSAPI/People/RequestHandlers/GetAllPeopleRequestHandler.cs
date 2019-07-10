@@ -1,14 +1,15 @@
-using MediatR;
-using CQRSAPI.Models;
-using CQRSAPI.Requests;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using CQRSAPI.Data;
+using CQRSAPI.People.Models;
+using CQRSAPI.People.Requests;
+using CQRSAPI.People.Responses;
 using CQRSAPI.Responses;
+using MediatR;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace CQRSAPI.RequestHandlers
+namespace CQRSAPI.People.RequestHandlers
 {
 
     public class GetAllPeopleRequestHandler : IRequestHandler<GetAllPeopleRequest, GetAllPeopleResponse>
@@ -34,11 +35,11 @@ namespace CQRSAPI.RequestHandlers
                     request.PageNumber,
                     request.QueryParams,
                     cancellationToken);
-                return (new GetAllPeopleResponse() { Success = true, Result = allPeople });
+                return (new GetAllPeopleResponse() { Result = ApiResponse<List<Person>>.ResponseType.Ok, Value = allPeople });
             }
             else
             {
-                return (new GetAllPeopleResponse() { Success = false, Errors = errors });
+                return (new GetAllPeopleResponse() { Result = ApiResponse<List<Person>>.ResponseType.BadRequest, Errors = errors });
             }
         }
 

@@ -1,13 +1,14 @@
-using MediatR;
-using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Data;
+using CQRSAPI.People.Messages;
+using CQRSAPI.People.Models;
+using CQRSAPI.People.Requests;
+using CQRSAPI.People.Responses;
 using CQRSAPI.Responses;
-using CQRSAPI.Models;
-using CQRSAPI.Messages;
+using MediatR;
 
-namespace CQRSAPI.RequestHandlers
+namespace CQRSAPI.People.RequestHandlers
 {
 
     public class CreatePersonRequestHandler : IRequestHandler<CreatePersonRequest, CreatePersonResponse>
@@ -28,12 +29,12 @@ namespace CQRSAPI.RequestHandlers
         {
             if(!_personValidator.IsValid(request.Person, out var errors))
             {
-                return new CreatePersonResponse() { Success = false, Errors = errors };
+                return new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.BadRequest, Errors = errors };
             }
 
             Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
-            await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id});
-            return (new CreatePersonResponse() { Success = true, Result = addPerson });
+            await PeopleRabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id});
+            return (new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.Ok, Value = addPerson });
         }
 
     }

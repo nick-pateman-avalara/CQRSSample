@@ -1,13 +1,14 @@
-using MediatR;
-using CQRSAPI.Models;
-using CQRSAPI.Requests;
 using System.Threading;
 using System.Threading.Tasks;
-using CQRSAPI.Responses;
 using CQRSAPI.Data;
-using CQRSAPI.Messages;
+using CQRSAPI.People.Messages;
+using CQRSAPI.People.Models;
+using CQRSAPI.People.Requests;
+using CQRSAPI.People.Responses;
+using CQRSAPI.Responses;
+using MediatR;
 
-namespace CQRSAPI.RequestHandlers
+namespace CQRSAPI.People.RequestHandlers
 {
 
     public class UpdatePersonRequestHandler : IRequestHandler<UpdatePersonRequest, UpdatePersonResponse>
@@ -28,14 +29,14 @@ namespace CQRSAPI.RequestHandlers
         {
             if (!_personValidator.IsValid(request.Person, out var errors))
             {
-                return new UpdatePersonResponse() { Success = false, Errors = errors };
+                return new UpdatePersonResponse() { Result = ApiResponse<bool>.ResponseType.BadRequest , Errors = errors };
             }
 
             int affectedRows = await _peopleRepository.UpdateAsync(request.Person, cancellationToken);
             if (affectedRows > 0)
             {
-                await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.UpdatedPerson, Id = request.Person.Id });
-                return (new UpdatePersonResponse() { Success = true });
+                await PeopleRabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.UpdatedPerson, Id = request.Person.Id });
+                return (new UpdatePersonResponse() { Result = ApiResponse<bool>.ResponseType.Ok });
             }
             else
             {

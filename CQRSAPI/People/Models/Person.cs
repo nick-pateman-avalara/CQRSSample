@@ -1,4 +1,4 @@
-namespace CQRSAPI.Models
+namespace CQRSAPI.People.Models
 {
 
     public class Person

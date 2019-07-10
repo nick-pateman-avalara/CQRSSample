@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using CQRSAPI.People.Responses;
 using MediatR;
-using CQRSAPI.Responses;
 
-namespace CQRSAPI.Requests
+namespace CQRSAPI.People.Requests
 {
 
     public class GetAllPeopleRequest : IRequest<GetAllPeopleResponse>

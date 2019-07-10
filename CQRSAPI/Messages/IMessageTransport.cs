@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CQRSAPI.Models;
+﻿using System.Threading.Tasks;
+using CQRSAPI.People.Messages;
 
 namespace CQRSAPI.Messages
 {
@@ -10,7 +7,7 @@ namespace CQRSAPI.Messages
     public interface IMessageTransport
     {
 
-        Task PublishAsync(PersonEventMessage message);
+        Task SendAsync(PersonEventMessage message);
 
     }
 

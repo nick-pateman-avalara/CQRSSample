@@ -1,14 +1,15 @@
-﻿using CQRSAPI.Models;
-using Dapper;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CQRSAPI.Data;
 using CQRSAPI.Helpers;
+using CQRSAPI.People.Models;
+using Dapper;
 
-namespace CQRSAPI.Data
+namespace CQRSAPI.People.Data
 {
 
     public class CqrsApiPeopleSqlRepository : IRepository<Person>

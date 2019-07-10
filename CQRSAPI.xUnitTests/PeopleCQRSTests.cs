@@ -1,15 +1,18 @@
 ﻿using CQRSAPI.Data;
 using CQRSAPI.Extensions;
-using CQRSAPI.Models;
-using CQRSAPI.RequestHandlers;
-using CQRSAPI.Requests;
-using CQRSAPI.Responses;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
+using CQRSAPI.People.Data;
+using CQRSAPI.People.Extensions;
+using CQRSAPI.People.Models;
+using CQRSAPI.People.RequestHandlers;
+using CQRSAPI.People.Requests;
+using CQRSAPI.People.Responses;
+using CQRSAPI.Responses;
 using Xunit;
 
 namespace CQRSAPI.xUnitTests
@@ -52,8 +55,8 @@ namespace CQRSAPI.xUnitTests
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            _created = createdPerson.Result;
-            Assert.True(createdPerson.Success);
+            _created = createdPerson.Value;
+            Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.Ok);
         }
 
         [Fact]
@@ -74,7 +77,7 @@ namespace CQRSAPI.xUnitTests
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             List<ModelError> errors = createdPerson.Errors;
-            Assert.True(!createdPerson.Success);
+            Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
             Assert.True(errors != null);
             Assert.True(errors.Count == 1);
             Assert.Contains("FirstName", errors[0].ErrorMessage);
@@ -97,7 +100,7 @@ namespace CQRSAPI.xUnitTests
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            Assert.True(!createdPerson.Success);
+            Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
             Assert.True(createdPerson.Errors != null);
             Assert.True(createdPerson.Errors.Count == 1);
             Assert.Contains("LastName", createdPerson.Errors[0].ErrorMessage);
@@ -120,7 +123,7 @@ namespace CQRSAPI.xUnitTests
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            Assert.True(!createdPerson.Success);
+            Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
             Assert.True(createdPerson.Errors != null);
             Assert.True(createdPerson.Errors.Count == 1);
             Assert.Contains("Age", createdPerson.Errors[0].ErrorMessage);
@@ -143,7 +146,7 @@ namespace CQRSAPI.xUnitTests
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
-            Assert.True(!createdPerson.Success);
+            Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
             Assert.True(createdPerson.Errors != null);
             Assert.True(createdPerson.Errors.Count == 1);
             Assert.Contains("Age", createdPerson.Errors[0].ErrorMessage);
@@ -161,10 +164,10 @@ namespace CQRSAPI.xUnitTests
                 "Unit test cannot be run before creating a user.");
 
             GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleSqlRepository);
-            Person getPerson = await handler.Handle(new GetPersonRequest() { Id = _created.Id }, new CancellationToken());
+            GetPersonResponse reponse = await handler.Handle(new GetPersonRequest() { Id = _created.Id }, new CancellationToken());
 
-            Assert.True(getPerson != null);
-            Assert.True(getPerson.IsEqual(_created));
+            Assert.True(reponse.Result == ApiResponse<Person>.ResponseType.Ok);
+            Assert.True(reponse.Value.IsEqual(_created));
         }
 
         [Fact]
@@ -173,9 +176,9 @@ namespace CQRSAPI.xUnitTests
             Initialise();
 
             GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleSqlRepository);
-            Person getPerson = await handler.Handle(new GetPersonRequest() { Id = 0 }, new CancellationToken());
+            GetPersonResponse reponse = await handler.Handle(new GetPersonRequest() { Id = 0 }, new CancellationToken());
 
-            Assert.True(getPerson == null);
+            Assert.True(reponse.Result == ApiResponse<Person>.ResponseType.NotFound);
         }
 
         [Fact]
@@ -187,9 +190,9 @@ namespace CQRSAPI.xUnitTests
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
             GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleSqlRepository);
-            GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 50 }, new CancellationToken());
+            GetAllPeopleResponse response = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 50 }, new CancellationToken());
 
-            Assert.True(getAllPeople.Success);
+            Assert.True(response.Result == ApiResponse<List<Person>>.ResponseType.Ok);
         }
 
         [Fact]
@@ -201,12 +204,12 @@ namespace CQRSAPI.xUnitTests
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
             GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleSqlRepository);
-            GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 0, PageSize = 50 }, new CancellationToken());
+            GetAllPeopleResponse response = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 0, PageSize = 50 }, new CancellationToken());
 
-            Assert.False(getAllPeople.Success);
-            Assert.True(getAllPeople.Errors != null);
-            Assert.True(getAllPeople.Errors.Count == 1);
-            Assert.Contains("PageNumber", getAllPeople.Errors[0].ErrorMessage);
+            Assert.False(response.Result == ApiResponse<List<Person>>.ResponseType.Ok);
+            Assert.True(response.Errors != null);
+            Assert.True(response.Errors.Count == 1);
+            Assert.Contains("PageNumber", response.Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -218,12 +221,12 @@ namespace CQRSAPI.xUnitTests
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
             GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleSqlRepository);
-            GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 0 }, new CancellationToken());
+            GetAllPeopleResponse response = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 0 }, new CancellationToken());
 
-            Assert.False(getAllPeople.Success);
-            Assert.True(getAllPeople.Errors != null);
-            Assert.True(getAllPeople.Errors.Count == 1);
-            Assert.Contains("PageSize", getAllPeople.Errors[0].ErrorMessage);
+            Assert.False(response.Result == ApiResponse<List<Person>>.ResponseType.Ok);
+            Assert.True(response.Errors != null);
+            Assert.True(response.Errors.Count == 1);
+            Assert.Contains("PageSize", response.Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -238,9 +241,9 @@ namespace CQRSAPI.xUnitTests
                 "Unit test cannot be run before creating a user.");
 
             DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleSqlRepository);
-            bool deleted = await handler.Handle(new DeletePersonRequest() { Id = _created.Id }, new CancellationToken());
+            DeletePersonResponse response = await handler.Handle(new DeletePersonRequest() { Id = _created.Id }, new CancellationToken());
 
-            Assert.True(deleted);
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.Ok);
         }
 
         [Fact]
@@ -249,9 +252,9 @@ namespace CQRSAPI.xUnitTests
             Initialise();
 
             DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleSqlRepository);
-            bool deleted = await handler.Handle(new DeletePersonRequest() { Id = 0 }, new CancellationToken());
+            DeletePersonResponse response = await handler.Handle(new DeletePersonRequest() { Id = 0 }, new CancellationToken());
 
-            Assert.False(deleted);
+            Assert.False(response.Result == ApiResponse<bool>.ResponseType.Ok);
         }
 
 

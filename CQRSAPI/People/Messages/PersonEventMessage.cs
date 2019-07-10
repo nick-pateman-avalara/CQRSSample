@@ -1,6 +1,6 @@
 ﻿using NServiceBus;
 
-namespace CQRSAPI.Messages
+namespace CQRSAPI.People.Messages
 {
 
     public class PersonEventMessage : IMessage

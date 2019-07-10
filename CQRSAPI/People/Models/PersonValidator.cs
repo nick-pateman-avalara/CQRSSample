@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace CQRSAPI.Models
+namespace CQRSAPI.People.Models
 {
 
     public interface IPersonValidator

@@ -1,8 +1,8 @@
+using CQRSAPI.People.Models;
+using CQRSAPI.People.Responses;
 using MediatR;
-using CQRSAPI.Models;
-using CQRSAPI.Responses;
 
-namespace CQRSAPI.Requests
+namespace CQRSAPI.People.Requests
 {
 
     public class UpdatePersonRequest : IRequest<UpdatePersonResponse>

@@ -7,9 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CQRSAPI.Extensions;
-using CQRSAPI.Messages;
-using CQRSAPI.Models;
+using CQRSAPI.People.Data;
+using CQRSAPI.People.Messages;
+using CQRSAPI.People.Models;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using CQRSAPI.Feature;
 
 namespace CQRSAPI
 {
@@ -34,21 +38,24 @@ namespace CQRSAPI
 
         public async void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc()
+                .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(new ApiContollerFeatureProvider()))
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            services.AddScoped<IRepository<Person>, CqrsApiPeopleSqlRepository>();
-            services.AddScoped<IMediator, Mediator>();
-            services.AddScoped<IPersonValidator, PersonValidator>();
+            services.AddScoped<IApplicationFeatureProvider<ControllerFeature>, ApiContollerFeatureProvider>();
+
             services.AddTransient<ServiceFactory>(p => p.GetService);
+            services.AddScoped<IMediator, Mediator>();
             services.AddMediatorHandlers(typeof(Startup).GetTypeInfo().Assembly);
+
+            People.Feature.Services.AddServices(services);
 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "People API", Version = "v1" });
             });
 
-            await PeopleRabbitMQMessageTransport.InitialiseAsync(Configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
-            await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage());
+            //await PeopleRabbitMqMessageTransport.InitialiseAsync(Configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

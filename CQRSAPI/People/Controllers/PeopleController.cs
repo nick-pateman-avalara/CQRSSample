@@ -1,24 +1,20 @@
 using System.Net;
 using System.Threading.Tasks;
+using CQRSAPI.Controllers;
+using CQRSAPI.Helpers;
+using CQRSAPI.People.Messages;
+using CQRSAPI.People.Models;
+using CQRSAPI.People.Requests;
+using CQRSAPI.People.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using CQRSAPI.Models;
-using CQRSAPI.Requests;
-using CQRSAPI.Responses;
-using CQRSAPI.Extensions;
-using Microsoft.AspNetCore.Http.Extensions;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Web;
-using CQRSAPI.Helpers;
-using CQRSAPI.Messages;
 
-namespace CQRSAPI.Controllers
+namespace CQRSAPI.People.Controllers
 {
 
     [Route("api/people"),
      ApiController]
-    public class PeopleController : Controller
+    public class PeopleController : ApiControllerBase
     {
 
         private static IMediator _mediator;
@@ -35,8 +31,7 @@ namespace CQRSAPI.Controllers
             int pageSize = 50,
             int pageNumber = 1)
         {
-            await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage());
-
+            await PeopleRabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage());
 
             GetAllPeopleRequest request = new GetAllPeopleRequest()
             {
@@ -46,14 +41,7 @@ namespace CQRSAPI.Controllers
             };
 
             GetAllPeopleResponse getAllPeopleResponse = await _mediator.Send(request);
-            if(getAllPeopleResponse.Success)
-            {
-                return (Ok(getAllPeopleResponse.Result));
-            }
-            else
-            {
-                return (BadRequest(getAllPeopleResponse.Errors.ToStringList()));
-            }
+            return (ProcessApiResponse(getAllPeopleResponse));
         }
 
         [HttpGet("{id}"), 
@@ -67,13 +55,8 @@ namespace CQRSAPI.Controllers
                 return (BadRequest("Missing id parameter."));
             }
 
-            Person person = await _mediator.Send(new GetPersonRequest() { Id = id.Value });
-            if (person == null)
-            {
-                return (NotFound($"Person with Id {id} not found."));
-            }
-
-            return (Ok(person));
+            GetPersonResponse response = await _mediator.Send(new GetPersonRequest() { Id = id.Value });
+            return (ProcessApiResponse(response));
         }
 
         [HttpPost, 
@@ -83,16 +66,8 @@ namespace CQRSAPI.Controllers
         {
             if (ModelState.IsValid)
             {
-                CreatePersonResponse createResponse = await _mediator.Send(new CreatePersonRequest() { Person = person });
-
-                if (createResponse.Success)
-                {
-                    return (Ok(createResponse.Result));
-                }
-                else
-                {
-                    return (BadRequest(createResponse.Errors.ToStringList()));
-                }
+                CreatePersonResponse response = await _mediator.Send(new CreatePersonRequest() { Person = person });
+                return (ProcessApiResponse(response));
             }
             else
             {
@@ -115,22 +90,8 @@ namespace CQRSAPI.Controllers
 
             if (ModelState.IsValid)
             {
-                UpdatePersonResponse updateResponse = await _mediator.Send(new UpdatePersonRequest() { Person = person });
-                if(updateResponse.Success)
-                {
-                    return (Ok(person));
-                }
-                else
-                {
-                    if (updateResponse.Errors != null)
-                    {
-                        return(BadRequest(updateResponse.Errors.ToStringList()));
-                    }
-                    else
-                    {
-                        return(NotFound($"Person with Id {id} not found."));
-                    }
-                }
+                UpdatePersonResponse response = await _mediator.Send(new UpdatePersonRequest() { Person = person });
+                return (ProcessApiResponse(response));
             }
             else
             {
@@ -143,8 +104,8 @@ namespace CQRSAPI.Controllers
          ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            bool deleted = await _mediator.Send(new DeletePersonRequest() { Id = id });
-            return (deleted ? (IActionResult)Ok() : NotFound($"Person with Id {id} not found."));
+            DeletePersonResponse response = await _mediator.Send(new DeletePersonRequest() { Id = id });
+            return (ProcessApiResponse(response));
         }
 
     }

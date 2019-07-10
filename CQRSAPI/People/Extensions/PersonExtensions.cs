@@ -1,8 +1,8 @@
-﻿using CQRSAPI.Models;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
+using CQRSAPI.People.Models;
 
-namespace CQRSAPI.Extensions
+namespace CQRSAPI.People.Extensions
 {
 
     public static class PersonExtensions

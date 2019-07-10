@@ -1,23 +1,22 @@
-﻿using NServiceBus;
-using System;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using CQRSAPI.Messages;
+using NServiceBus;
 
-namespace CQRSAPI.Messages
+namespace CQRSAPI.People.Messages
 {
 
-    public class PeopleRabbitMQMessageTransport : IMessageTransport
+    public class PeopleRabbitMqMessageTransport : IMessageTransport
     {
 
         private IEndpointInstance _endpoint;
 
-        public static PeopleRabbitMQMessageTransport Instance { get; private set; }
+        public static PeopleRabbitMqMessageTransport Instance { get; private set; }
 
         public static async Task InitialiseAsync(string connectionString)
         {
             if(Instance == null)
             {
-                Instance = new PeopleRabbitMQMessageTransport();
+                Instance = new PeopleRabbitMqMessageTransport();
                 await Instance.CreateEndpointAsync(connectionString);
 
             }
@@ -35,14 +34,25 @@ namespace CQRSAPI.Messages
             endpointConfiguration.UsePersistence<LearningPersistence>();
             endpointConfiguration.SendFailedMessagesTo("CQRSAPI.Messages.Error");
 
-            _endpoint = await Endpoint.Start(endpointConfiguration).ConfigureAwait(false); ;
+            _endpoint = await Endpoint.Start(endpointConfiguration).ConfigureAwait(false);
         }
 
-        public async Task PublishAsync(PersonEventMessage message)
+        public async Task SendAsync(PersonEventMessage message)
         {
+            //I needed to manually create this Queue on RabbitMQ using the admin portal
+            //Ideally we would use an exchange that publishes to multiple queues, the
+            //topology would need to be changed from DirectRouting first.
             SendOptions sendOptions = new SendOptions();
             sendOptions.SetDestination("CQRSAPI.Messages.Out");
-            await _endpoint.Send(message, sendOptions).ConfigureAwait(false); ;
+            await _endpoint.Send(message, sendOptions).ConfigureAwait(false);
+        }
+
+        public static async Task SendIfInitialisedAsync(PersonEventMessage message)
+        {
+            if (Instance != null)
+            {
+                await Instance.SendAsync(message);
+            }
         }
 
     }
