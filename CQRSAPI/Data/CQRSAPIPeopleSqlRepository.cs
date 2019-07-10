@@ -1,7 +1,6 @@
 ﻿using CQRSAPI.Models;
 using Dapper;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -12,30 +11,21 @@ using CQRSAPI.Helpers;
 namespace CQRSAPI.Data
 {
 
-    public class CqrsApiPeopleRepository : IRepository<Person>
+    public class CqrsApiPeopleSqlRepository : IRepository<Person>
     {
 
         private readonly string _connectionString;
-        private readonly string _prefix;
 
-        public string TableName => $"{(string.IsNullOrEmpty(_prefix) ? "dbo" : _prefix)}.People";
+        public string TableName => "People";
 
         public string ConnectionString => (string.IsNullOrEmpty(_connectionString) ? Startup.LocalTestConnectionString : _connectionString);
 
-        public CqrsApiPeopleRepository()
+        public CqrsApiPeopleSqlRepository()
         { }
 
-        public CqrsApiPeopleRepository(string connectionString)
+        public CqrsApiPeopleSqlRepository(string connectionString)
         {
             _connectionString = connectionString;
-        }
-
-        public CqrsApiPeopleRepository(
-            string connectionString,
-            string prefix)
-        {
-            _connectionString = connectionString;
-            _prefix = prefix;
         }
 
         public async Task<Person> AddAsync(Person item, CancellationToken cancellationToken)
@@ -55,7 +45,8 @@ namespace CQRSAPI.Data
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
-                IEnumerable<Person> selectResults = await db.QueryAsync<Person>($"SELECT TOP 1 * FROM {TableName} WHERE Id = @Id ",
+                IEnumerable<Person> selectResults = await db.QueryAsync<Person>($"SELECT TOP 1 * FROM {TableName} " +
+                                                                                "WHERE Id = @Id ",
                     new { id });
                 return selectResults.FirstOrDefault();
             }
@@ -85,7 +76,8 @@ namespace CQRSAPI.Data
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
-                int rowsAffected = await db.ExecuteAsync($"DELETE FROM {TableName} WHERE Id = @Id",
+                int rowsAffected = await db.ExecuteAsync($"DELETE FROM {TableName} " + 
+                                                         "WHERE Id = @Id",
                     new { id });
                 return (rowsAffected);
             }

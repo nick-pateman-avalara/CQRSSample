@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Models;
 using CQRSAPI.Data;
+using CQRSAPI.Messages;
 
 namespace CQRSAPI.RequestHandlers
 {
@@ -23,7 +24,9 @@ namespace CQRSAPI.RequestHandlers
             if(await _peopleRepository.Exists(request.Id, cancellationToken))
             {
                 int rowsAffected = await _peopleRepository.DeleteAsync(request.Id, cancellationToken);
-                return (rowsAffected == 1);
+                bool success = (rowsAffected == 1);
+                if(success) await PeopleRabbitMQMessageTransport.Instance.SendLocalAsync(new PersonMessage() { Op = PersonMessage.Operation.DeletedPerson, Id = request.Id });
+                return (success);
             }
             else
             {

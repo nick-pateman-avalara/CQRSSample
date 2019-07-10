@@ -19,7 +19,7 @@ namespace CQRSAPI.xUnitTests
     {
 
         private Random _rnd;
-        private CqrsApiPeopleRepository _peopleRepository;
+        private CqrsApiPeopleSqlRepository _peopleSqlRepository;
         private Person _created;
 
         private void Initialise()
@@ -32,7 +32,7 @@ namespace CQRSAPI.xUnitTests
                 { "Initial Catalog", "CQRSAPIDB" },
                 { "Integrated Security", "true" }
             };
-            _peopleRepository = new CqrsApiPeopleRepository(dbConnectionStringBuilder.ToString());
+            _peopleSqlRepository = new CqrsApiPeopleSqlRepository(dbConnectionStringBuilder.ToString());
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleRepository,
+                _peopleSqlRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -69,7 +69,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleRepository,
+                _peopleSqlRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -93,7 +93,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleRepository,
+                _peopleSqlRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -116,7 +116,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleRepository,
+                _peopleSqlRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -139,7 +139,7 @@ namespace CQRSAPI.xUnitTests
             };
 
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
-                _peopleRepository,
+                _peopleSqlRepository,
                 new PersonValidator());
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
@@ -160,7 +160,7 @@ namespace CQRSAPI.xUnitTests
                 _created != null, 
                 "Unit test cannot be run before creating a user.");
 
-            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleRepository);
+            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleSqlRepository);
             Person getPerson = await handler.Handle(new GetPersonRequest() { Id = _created.Id }, new CancellationToken());
 
             Assert.True(getPerson != null);
@@ -172,7 +172,7 @@ namespace CQRSAPI.xUnitTests
         {
             Initialise();
 
-            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleRepository);
+            GetPersonRequestHandler handler = new GetPersonRequestHandler(_peopleSqlRepository);
             Person getPerson = await handler.Handle(new GetPersonRequest() { Id = 0 }, new CancellationToken());
 
             Assert.True(getPerson == null);
@@ -186,7 +186,7 @@ namespace CQRSAPI.xUnitTests
             //Make sure we have at least 1 record in the DB
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
-            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleRepository);
+            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleSqlRepository);
             GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 50 }, new CancellationToken());
 
             Assert.True(getAllPeople.Success);
@@ -200,7 +200,7 @@ namespace CQRSAPI.xUnitTests
             //Make sure we have at least 1 record in the DB
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
-            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleRepository);
+            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleSqlRepository);
             GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 0, PageSize = 50 }, new CancellationToken());
 
             Assert.False(getAllPeople.Success);
@@ -217,7 +217,7 @@ namespace CQRSAPI.xUnitTests
             //Make sure we have at least 1 record in the DB
             await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
 
-            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleRepository);
+            GetAllPeopleRequestHandler handler = new GetAllPeopleRequestHandler(_peopleSqlRepository);
             GetAllPeopleResponse getAllPeople = await handler.Handle(new GetAllPeopleRequest() { PageNumber = 1, PageSize = 0 }, new CancellationToken());
 
             Assert.False(getAllPeople.Success);
@@ -237,7 +237,7 @@ namespace CQRSAPI.xUnitTests
                 _created != null,
                 "Unit test cannot be run before creating a user.");
 
-            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleRepository);
+            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleSqlRepository);
             bool deleted = await handler.Handle(new DeletePersonRequest() { Id = _created.Id }, new CancellationToken());
 
             Assert.True(deleted);
@@ -248,7 +248,7 @@ namespace CQRSAPI.xUnitTests
         {
             Initialise();
 
-            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleRepository);
+            DeletePersonRequestHandler handler = new DeletePersonRequestHandler(_peopleSqlRepository);
             bool deleted = await handler.Handle(new DeletePersonRequest() { Id = 0 }, new CancellationToken());
 
             Assert.False(deleted);

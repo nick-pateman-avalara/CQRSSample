@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Responses;
 using CQRSAPI.Data;
+using CQRSAPI.Messages;
 
 namespace CQRSAPI.RequestHandlers
 {
@@ -33,6 +34,7 @@ namespace CQRSAPI.RequestHandlers
             int affectedRows = await _peopleRepository.UpdateAsync(request.Person, cancellationToken);
             if (affectedRows > 0)
             {
+                await PeopleRabbitMQMessageTransport.Instance.SendLocalAsync(new PersonMessage() { Op = PersonMessage.Operation.UpdatedPerson, Id = request.Person.Id });
                 return (new UpdatePersonResponse() { Success = true });
             }
             else

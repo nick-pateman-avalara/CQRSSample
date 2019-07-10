@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CQRSAPI.Data;
 using CQRSAPI.Responses;
 using CQRSAPI.Models;
+using CQRSAPI.Messages;
 
 namespace CQRSAPI.RequestHandlers
 {
@@ -31,6 +32,7 @@ namespace CQRSAPI.RequestHandlers
             }
 
             Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
+            await PeopleRabbitMQMessageTransport.Instance.SendLocalAsync(new PersonMessage() { Op = PersonMessage.Operation.CreatedPerson, Id = addPerson.Id});
             return (new CreatePersonResponse() { Success = true, Result = addPerson });
         }
 

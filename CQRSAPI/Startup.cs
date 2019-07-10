@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CQRSAPI.Extensions;
+using CQRSAPI.Messages;
 using CQRSAPI.Models;
 using Microsoft.OpenApi.Models;
 
@@ -31,11 +32,11 @@ namespace CQRSAPI
             }
         }
 
-        public void ConfigureServices(IServiceCollection services)
+        public async void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            services.AddScoped<IRepository<Person>, CqrsApiPeopleRepository>();
+            services.AddScoped<IRepository<Person>, CqrsApiPeopleSqlRepository>();
             services.AddScoped<IMediator, Mediator>();
             services.AddScoped<IPersonValidator, PersonValidator>();
             services.AddTransient<ServiceFactory>(p => p.GetService);
@@ -45,6 +46,8 @@ namespace CQRSAPI
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "People API", Version = "v1" });
             });
+
+            await PeopleRabbitMQMessageTransport.InitialiseAsync(Configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
