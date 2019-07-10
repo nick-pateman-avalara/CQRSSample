@@ -3,7 +3,7 @@
 namespace CQRSAPI.Messages
 {
 
-    public class PersonMessage : IMessage
+    public class PersonEventMessage : IMessage
     {
 
         public enum Operation

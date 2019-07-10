@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Web;
 using CQRSAPI.Helpers;
+using CQRSAPI.Messages;
 
 namespace CQRSAPI.Controllers
 {
@@ -34,6 +35,9 @@ namespace CQRSAPI.Controllers
             int pageSize = 50,
             int pageNumber = 1)
         {
+            await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage());
+
+
             GetAllPeopleRequest request = new GetAllPeopleRequest()
             {
                 PageSize = pageSize,

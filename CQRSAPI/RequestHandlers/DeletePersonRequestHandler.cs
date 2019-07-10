@@ -25,7 +25,7 @@ namespace CQRSAPI.RequestHandlers
             {
                 int rowsAffected = await _peopleRepository.DeleteAsync(request.Id, cancellationToken);
                 bool success = (rowsAffected == 1);
-                if(success) await PeopleRabbitMQMessageTransport.Instance.SendLocalAsync(new PersonMessage() { Op = PersonMessage.Operation.DeletedPerson, Id = request.Id });
+                if(success) await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.DeletedPerson, Id = request.Id });
                 return (success);
             }
             else

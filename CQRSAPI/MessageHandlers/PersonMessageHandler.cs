@@ -5,15 +5,15 @@ using NServiceBus;
 namespace CQRSAPI.MessageHandlers
 {
 
-    public class PersonMessageHandler : IHandleMessages<PersonMessage>
-    {
+    //public class PersonMessageHandler : IHandleMessages<PersonEventMessage>
+    //{
 
-        public Task Handle(PersonMessage message, IMessageHandlerContext context)
-        {
-            System.Diagnostics.Debug.WriteLine($"Received message - {message.ToString()}");
-            return (Task.CompletedTask);
-        }
+    //    public Task Handle(PersonEventMessage message, IMessageHandlerContext context)
+    //    {
+    //        System.Diagnostics.Debug.WriteLine($"Received message - {message.ToString()}");
+    //        return (Task.CompletedTask);
+    //    }
 
-    }
+    //}
 
 }

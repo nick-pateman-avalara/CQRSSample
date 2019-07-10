@@ -25,18 +25,24 @@ namespace CQRSAPI.Messages
 
         private async Task CreateEndpointAsync(string connectionString)
         {
-            EndpointConfiguration endpointConfiguration = new EndpointConfiguration("CqrsSample.CqrsApi");
-            var transport = endpointConfiguration.UseTransport<RabbitMQTransport>();
-            transport.UseConventionalRoutingTopology();
+            EndpointConfiguration endpointConfiguration = new EndpointConfiguration("CQRSAPI.Messages.In");
+
+            TransportExtensions<RabbitMQTransport> transport = endpointConfiguration.UseTransport<RabbitMQTransport>();
+            transport.UseDirectRoutingTopology();
             transport.ConnectionString(connectionString);
+
             endpointConfiguration.EnableInstallers();
-            endpointConfiguration.UsePersistence<InMemoryPersistence>();
-            _endpoint = await Endpoint.Start(endpointConfiguration);
+            endpointConfiguration.UsePersistence<LearningPersistence>();
+            endpointConfiguration.SendFailedMessagesTo("CQRSAPI.Messages.Error");
+
+            _endpoint = await Endpoint.Start(endpointConfiguration).ConfigureAwait(false); ;
         }
 
-        public async Task SendLocalAsync(PersonMessage message)
+        public async Task PublishAsync(PersonEventMessage message)
         {
-            await _endpoint.SendLocal(message);
+            SendOptions sendOptions = new SendOptions();
+            sendOptions.SetDestination("CQRSAPI.Messages.Out");
+            await _endpoint.Send(message, sendOptions).ConfigureAwait(false); ;
         }
 
     }

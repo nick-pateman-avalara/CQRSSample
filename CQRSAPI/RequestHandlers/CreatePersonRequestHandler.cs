@@ -32,7 +32,7 @@ namespace CQRSAPI.RequestHandlers
             }
 
             Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
-            await PeopleRabbitMQMessageTransport.Instance.SendLocalAsync(new PersonMessage() { Op = PersonMessage.Operation.CreatedPerson, Id = addPerson.Id});
+            await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id});
             return (new CreatePersonResponse() { Success = true, Result = addPerson });
         }
 

@@ -34,7 +34,7 @@ namespace CQRSAPI.RequestHandlers
             int affectedRows = await _peopleRepository.UpdateAsync(request.Person, cancellationToken);
             if (affectedRows > 0)
             {
-                await PeopleRabbitMQMessageTransport.Instance.SendLocalAsync(new PersonMessage() { Op = PersonMessage.Operation.UpdatedPerson, Id = request.Person.Id });
+                await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.UpdatedPerson, Id = request.Person.Id });
                 return (new UpdatePersonResponse() { Success = true });
             }
             else

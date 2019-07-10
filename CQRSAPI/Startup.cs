@@ -48,6 +48,7 @@ namespace CQRSAPI
             });
 
             await PeopleRabbitMQMessageTransport.InitialiseAsync(Configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
+            await PeopleRabbitMQMessageTransport.Instance.PublishAsync(new PersonEventMessage());
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
