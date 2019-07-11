@@ -7,9 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CQRSAPI.Extensions;
-using CQRSAPI.People.Data;
-using CQRSAPI.People.Messages;
-using CQRSAPI.People.Models;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -19,6 +16,8 @@ namespace CQRSAPI
 {
     public class Startup
     {
+
+        private ApiContollerFeatureProvider _apiFeatureController;
 
         public Startup(IConfiguration configuration)
         {
@@ -36,10 +35,14 @@ namespace CQRSAPI
             }
         }
 
-        public async void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
+            _apiFeatureController = new ApiContollerFeatureProvider(
+                Configuration,
+                services);
+
             services.AddMvc()
-                .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(new ApiContollerFeatureProvider()))
+                .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(_apiFeatureController))
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddScoped<IApplicationFeatureProvider<ControllerFeature>, ApiContollerFeatureProvider>();
@@ -48,14 +51,12 @@ namespace CQRSAPI
             services.AddScoped<IMediator, Mediator>();
             services.AddMediatorHandlers(typeof(Startup).GetTypeInfo().Assembly);
 
-            People.Feature.Services.AddServices(services);
+            _apiFeatureController.AddServices();
 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "People API", Version = "v1" });
             });
-
-            //await PeopleRabbitMqMessageTransport.InitialiseAsync(Configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

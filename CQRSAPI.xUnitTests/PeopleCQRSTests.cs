@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using CQRSAPI.People.Data;
-using CQRSAPI.People.Extensions;
-using CQRSAPI.People.Models;
-using CQRSAPI.People.RequestHandlers;
-using CQRSAPI.People.Requests;
-using CQRSAPI.People.Responses;
+using CQRSAPI.Features.People.Data;
+using CQRSAPI.Features.People.Extensions;
+using CQRSAPI.Features.People.Models;
+using CQRSAPI.Features.People.RequestHandlers;
+using CQRSAPI.Features.People.Requests;
+using CQRSAPI.Features.People.Responses;
 using CQRSAPI.Responses;
 using Xunit;
 
