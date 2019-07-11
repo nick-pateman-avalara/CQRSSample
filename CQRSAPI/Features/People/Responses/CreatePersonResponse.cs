@@ -6,7 +6,6 @@ namespace CQRSAPI.Features.People.Responses
 
     public class CreatePersonResponse : ApiResponse<Person>
     {
-
     }
 
 }

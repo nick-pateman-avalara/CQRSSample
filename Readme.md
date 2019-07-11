@@ -106,7 +106,13 @@ NServiceBus provides us with a highly customisable message queuing library with 
 * CQRSAPI.Messages.IMessageTransport
 * CQRSAPI.Messages.MessageBase
 * CQRSAPI.Messages.RabbitMQMessageTransport
+* CQRSAPI.Features.People.Messages.PersonEventMessage
+* CQRSAPI.Features.PeopleV2.Messages.PersonEventMessage
 
 ### - xUnit Tests
 
 We are using xUnit in this sample due to its improved functionality for testing async methods.  Both features (People, PeopleV2) are tested.
+
+### Swagger
+
+Swagger has also been enabled in the sample.

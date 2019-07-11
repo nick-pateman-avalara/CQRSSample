@@ -15,8 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CQRSAPI.Features.People.Controllers
 {
 
-    [Route("api/people"),
-     ApiController]
+    [Route("api/people")]
     public class PeopleController : ApiControllerBase
     {
 

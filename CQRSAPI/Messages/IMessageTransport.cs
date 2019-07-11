@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using CQRSAPI.Features.People.Messages;
 
 namespace CQRSAPI.Messages
 {

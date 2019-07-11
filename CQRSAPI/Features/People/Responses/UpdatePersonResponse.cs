@@ -5,7 +5,6 @@ namespace CQRSAPI.Features.People.Responses
 
     public class UpdatePersonResponse : ApiResponse<bool>
     {
-
     }
 
 }

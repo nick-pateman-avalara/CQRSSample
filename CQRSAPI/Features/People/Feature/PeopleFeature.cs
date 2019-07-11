@@ -4,7 +4,6 @@ using CQRSAPI.Data;
 using CQRSAPI.Feature;
 using CQRSAPI.Features.People.Controllers;
 using CQRSAPI.Features.People.Data;
-using CQRSAPI.Features.People.Messages;
 using CQRSAPI.Features.People.Models;
 using CQRSAPI.Messages;
 using Microsoft.Extensions.Configuration;

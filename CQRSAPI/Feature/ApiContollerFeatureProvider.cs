@@ -30,17 +30,19 @@ namespace CQRSAPI.Feature
         private void EnumerateFeatures()
         {
             IConfigurationSection featuresConfig = _configuration.GetSection("Features");
-            foreach (Type entityType in typeof(ApiContollerFeatureProvider).GetTypeInfo().Assembly.GetTypes())
+            if (featuresConfig != null)
             {
-                if (!entityType.IsInterface && typeof(IFeature).IsAssignableFrom(entityType))
+                foreach (Type entityType in typeof(ApiContollerFeatureProvider).GetTypeInfo().Assembly.GetTypes())
                 {
-                    IFeature featurePart = (IFeature)Activator.CreateInstance(entityType);
-                    bool enabled = featuresConfig.GetValue<bool>(featurePart.Name, false);
-                    featurePart.Enabled = enabled;
-
-                    if (featurePart.Enabled)
+                    if (!entityType.IsInterface && typeof(IFeature).IsAssignableFrom(entityType))
                     {
-                        _features.Add(featurePart);
+                        IFeature featurePart = (IFeature)Activator.CreateInstance(entityType);
+                        featurePart.Enabled = featuresConfig.GetValue(featurePart.Name, false);
+
+                        if (featurePart.Enabled)
+                        {
+                            _features.Add(featurePart);
+                        }
                     }
                 }
             }

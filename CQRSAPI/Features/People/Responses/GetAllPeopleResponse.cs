@@ -7,7 +7,6 @@ namespace CQRSAPI.Features.People.Responses
 
     public class GetAllPeopleResponse : ApiResponse<List<Person>>
     {
-
     }
 
 }

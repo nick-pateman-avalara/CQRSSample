@@ -1,5 +1,4 @@
 using System.Reflection;
-using CQRSAPI.Data;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
