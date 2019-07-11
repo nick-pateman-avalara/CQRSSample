@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Data;
@@ -33,9 +35,27 @@ namespace CQRSAPI.Features.PeopleV2.RequestHandlers
                 return new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.BadRequest, Errors = errors };
             }
 
-            Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
-            await RabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id});
-            return (new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.Ok, Value = addPerson });
+            List<Person> existing = await _peopleRepository.FindAllAsync(
+                50,
+                1,
+                new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("FirstName", $"eq.{request.Person.FirstName}"),
+                    new KeyValuePair<string, string>("op", "and"),
+                    new KeyValuePair<string, string>("LastName", $"eq.{request.Person.LastName}"),
+                },
+                cancellationToken);
+
+            if (existing.Any())
+            {
+                return (new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.Conflict });
+            }
+            else
+            {
+                Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
+                await RabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id });
+                return (new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.Ok, Value = addPerson });
+            }
         }
 
     }

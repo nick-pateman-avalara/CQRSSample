@@ -12,6 +12,7 @@ using CQRSAPI.Helpers;
 using CQRSAPI.Messages;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace CQRSAPI.Features.PeopleV2.Controllers
 {
@@ -20,17 +21,22 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
     public class PeopleController : ApiControllerBase
     {
 
-        private static IMediator _mediator;
+        private readonly IMediator _mediator;
 
-        public PeopleController(IMediator mediator)
+        public override ILogger Logger { get; protected set; }
+
+        public PeopleController(
+            ILogger<PeopleController> logger,
+            IMediator mediator)
         {
+            Logger = logger;
             _mediator = mediator;
         }
 
         [HttpGet("featureInfo")]
         public ActionResult GetFeature()
         {
-            IFeature feature = Startup.ApiFeatureController.GetFeatureByName(new PeopleFeature().Name);
+            IFeature feature = Startup.ApiFeatureController.GetFeatureByName(PeopleFeature.GetName());
             return (feature != null ? (ActionResult)Ok(feature) : NotFound());
         }
 
@@ -71,13 +77,16 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
 
         [HttpPost, 
          ProducesResponseType((int)HttpStatusCode.OK), 
-         ProducesResponseType((int)HttpStatusCode.BadRequest)]
+         ProducesResponseType((int)HttpStatusCode.BadRequest),
+         ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> CreatePerson([FromBody] Person person)
         {
             if (ModelState.IsValid)
             {
                 CreatePersonResponse response = await _mediator.Send(new CreatePersonRequest() { Person = person });
-                return (ProcessApiResponse(response));
+                return (ProcessApiResponse(
+                    response,
+                    conflictReturnValue: $"Person already exists with the name '{person.FirstName} {person.LastName}'"));
             }
             else
             {

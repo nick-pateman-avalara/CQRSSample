@@ -71,9 +71,9 @@ In this folder there are 2 features, People, and also PeopleV2 which is a direct
 }
 ```
 
-Each feature folder contains all necessary logic for handling the feature and as such, can be changed independent of each other. In this sample they are V2 is a direct copy simply for demonstration purposes.
+Each feature folder contains all necessary logic for handling the feature and as such, can be changed independent of each other.
 
-> Note : As the PeopleV2 feature is a direct copy, it also occupies the same controller endpoint, and as a result you can only enable one of these features at a time.
+> Note : In this sample they are V2 is practically the same as V1, with the exception of a few tweaks here and there, such as not allowing the user to create more than one user with the same first and last name.  Consider it as an incremental update to the older endpoint.
 
 ### - Dapper
 

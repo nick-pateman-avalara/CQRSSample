@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CQRSAPI.Features.PeopleV2.Models
 {
 

@@ -4,13 +4,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace CQRSAPI.Features.People.Models
 {
 
-    public interface IPersonValidator
-    {
-        bool IsValid(
-            Person person,
-            out List<ModelError> errors);
-    }
-
     public class PersonValidator : IPersonValidator
     {
 

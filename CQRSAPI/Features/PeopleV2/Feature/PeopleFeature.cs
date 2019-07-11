@@ -32,6 +32,11 @@ namespace CQRSAPI.Features.PeopleV2.Feature
             await RabbitMqMessageTransport.InitialiseAsync(configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
         }
 
+        public static string GetName()
+        {
+            return (new PeopleFeature().Name);
+        }
+
     }
 
 }
