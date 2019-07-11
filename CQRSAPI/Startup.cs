@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using CQRSAPI.Feature;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace CQRSAPI
 {
@@ -53,7 +54,11 @@ namespace CQRSAPI
                 Configuration,
                 services);
 
-            services.AddMvc()
+            services.AddMvc(
+                options =>
+                {
+                    options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
+                })
                 .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(ApiFeatureController))
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 

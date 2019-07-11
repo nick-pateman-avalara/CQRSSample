@@ -115,4 +115,9 @@ We are using xUnit in this sample due to its improved functionality for testing 
 
 ### Swagger
 
-Swagger has also been enabled in the sample.
+Swagger has also been enabled in the sample. You can view the Api documentation via the url
+
+```
+/swagger/index.html
+```
+
