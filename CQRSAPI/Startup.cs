@@ -64,6 +64,12 @@ namespace CQRSAPI
 
             ApiFeatureController.AddServices();
 
+            services.ConfigureSwaggerGen(options =>
+            {
+                // UseFullTypeNameInSchemaIds replacement for .NET Core
+                options.CustomSchemaIds(x => x.FullName);
+            });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "People API", Version = "v1" });
