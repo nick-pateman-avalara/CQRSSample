@@ -17,14 +17,13 @@ namespace CQRSAPI
     public class Startup
     {
 
-        private ApiContollerFeatureProvider _apiFeatureController;
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
         public static IConfiguration Configuration { get; private set; }
+        public static ApiContollerFeatureProvider ApiFeatureController { get; private set; }
 
         public static string LocalTestConnectionString
         {
@@ -37,12 +36,12 @@ namespace CQRSAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            _apiFeatureController = new ApiContollerFeatureProvider(
+            ApiFeatureController = new ApiContollerFeatureProvider(
                 Configuration,
                 services);
 
             services.AddMvc()
-                .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(_apiFeatureController))
+                .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(ApiFeatureController))
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddScoped<IApplicationFeatureProvider<ControllerFeature>, ApiContollerFeatureProvider>();
@@ -51,7 +50,7 @@ namespace CQRSAPI
             services.AddScoped<IMediator, Mediator>();
             services.AddMediatorHandlers(typeof(Startup).GetTypeInfo().Assembly);
 
-            _apiFeatureController.AddServices();
+            ApiFeatureController.AddServices();
 
             services.AddSwaggerGen(c =>
             {

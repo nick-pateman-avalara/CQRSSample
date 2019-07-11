@@ -7,7 +7,7 @@ namespace CQRSAPI.Messages
     public interface IMessageTransport
     {
 
-        Task SendAsync(PersonEventMessage message);
+        Task SendAsync(MessageBase message);
 
     }
 

@@ -1,15 +1,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CQRSAPI.Data;
-using CQRSAPI.Features.People.Messages;
-using CQRSAPI.Features.People.Models;
-using CQRSAPI.Features.People.Requests;
-using CQRSAPI.Features.People.Responses;
+using CQRSAPI.Features.PeopleV2.Messages;
+using CQRSAPI.Features.PeopleV2.Models;
+using CQRSAPI.Features.PeopleV2.Requests;
+using CQRSAPI.Features.PeopleV2.Responses;
 using CQRSAPI.Messages;
 using CQRSAPI.Responses;
 using MediatR;
 
-namespace CQRSAPI.Features.People.RequestHandlers
+namespace CQRSAPI.Features.PeopleV2.RequestHandlers
 {
 
     public class UpdatePersonRequestHandler : IRequestHandler<UpdatePersonRequest, UpdatePersonResponse>

@@ -1,24 +1,22 @@
 ﻿using System.Threading.Tasks;
-using CQRSAPI.Messages;
 using NServiceBus;
 
-namespace CQRSAPI.Features.People.Messages
+namespace CQRSAPI.Messages
 {
 
-    public class PeopleRabbitMqMessageTransport : IMessageTransport
+    public class RabbitMqMessageTransport : IMessageTransport
     {
 
         private IEndpointInstance _endpoint;
 
-        public static PeopleRabbitMqMessageTransport Instance { get; private set; }
+        public static RabbitMqMessageTransport Instance { get; private set; }
 
         public static async Task InitialiseAsync(string connectionString)
         {
             if(Instance == null)
             {
-                Instance = new PeopleRabbitMqMessageTransport();
+                Instance = new RabbitMqMessageTransport();
                 await Instance.CreateEndpointAsync(connectionString);
-
             }
         }
 
@@ -37,7 +35,7 @@ namespace CQRSAPI.Features.People.Messages
             _endpoint = await Endpoint.Start(endpointConfiguration).ConfigureAwait(false);
         }
 
-        public async Task SendAsync(PersonEventMessage message)
+        public async Task SendAsync(MessageBase message)
         {
             //I needed to manually create this Queue on RabbitMQ using the admin portal
             //Ideally we would use an exchange that publishes to multiple queues, the
@@ -47,7 +45,7 @@ namespace CQRSAPI.Features.People.Messages
             await _endpoint.Send(message, sendOptions).ConfigureAwait(false);
         }
 
-        public static async Task SendIfInitialisedAsync(PersonEventMessage message)
+        public static async Task SendIfInitialisedAsync(MessageBase message) 
         {
             if (Instance != null)
             {

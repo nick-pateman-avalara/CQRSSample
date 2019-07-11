@@ -1,8 +1,7 @@
-﻿using CQRSAPI.Features.People.Feature;
+﻿using CQRSAPI.Features.PeopleV2.Feature;
 using CQRSAPI.Messages;
-using NServiceBus;
 
-namespace CQRSAPI.Features.People.Messages
+namespace CQRSAPI.Features.PeopleV2.Messages
 {
 
     public class PersonEventMessage : MessageBase

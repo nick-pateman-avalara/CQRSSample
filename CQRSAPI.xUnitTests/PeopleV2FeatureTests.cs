@@ -1,24 +1,22 @@
-﻿using CQRSAPI.Data;
-using CQRSAPI.Extensions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using CQRSAPI.Features.People.Data;
-using CQRSAPI.Features.People.Extensions;
-using CQRSAPI.Features.People.Models;
-using CQRSAPI.Features.People.RequestHandlers;
-using CQRSAPI.Features.People.Requests;
-using CQRSAPI.Features.People.Responses;
+using CQRSAPI.Features.PeopleV2.Data;
+using CQRSAPI.Features.PeopleV2.Extensions;
+using CQRSAPI.Features.PeopleV2.Models;
+using CQRSAPI.Features.PeopleV2.RequestHandlers;
+using CQRSAPI.Features.PeopleV2.Requests;
+using CQRSAPI.Features.PeopleV2.Responses;
 using CQRSAPI.Responses;
 using Xunit;
 
 namespace CQRSAPI.xUnitTests
 {
 
-    public class PeopleCqrsTests
+    public class PeopleV2FeatureTests
     {
 
         private Random _rnd;

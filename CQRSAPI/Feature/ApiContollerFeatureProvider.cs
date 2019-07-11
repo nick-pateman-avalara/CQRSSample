@@ -29,12 +29,13 @@ namespace CQRSAPI.Feature
 
         private void EnumerateFeatures()
         {
+            IConfigurationSection featuresConfig = _configuration.GetSection("Features");
             foreach (Type entityType in typeof(ApiContollerFeatureProvider).GetTypeInfo().Assembly.GetTypes())
             {
                 if (!entityType.IsInterface && typeof(IFeature).IsAssignableFrom(entityType))
                 {
                     IFeature featurePart = (IFeature)Activator.CreateInstance(entityType);
-                    bool enabled = _configuration.GetSection("Features").GetValue<bool>(featurePart.Name);
+                    bool enabled = featuresConfig.GetValue<bool>(featurePart.Name, false);
                     featurePart.Enabled = enabled;
 
                     if (featurePart.Enabled)
@@ -68,6 +69,11 @@ namespace CQRSAPI.Feature
             {
                 feature.Startup(_configuration);
             }
+        }
+
+        public IFeature GetFeatureByName(string name)
+        {
+            return (_features.FirstOrDefault(f => f.Name == name));
         }
 
     }

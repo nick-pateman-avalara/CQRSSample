@@ -1,18 +1,19 @@
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using CQRSAPI.Controllers;
 using CQRSAPI.Feature;
-using CQRSAPI.Features.People.Feature;
-using CQRSAPI.Features.People.Messages;
-using CQRSAPI.Features.People.Models;
-using CQRSAPI.Features.People.Requests;
-using CQRSAPI.Features.People.Responses;
+using CQRSAPI.Features.PeopleV2.Feature;
+using CQRSAPI.Features.PeopleV2.Messages;
+using CQRSAPI.Features.PeopleV2.Models;
+using CQRSAPI.Features.PeopleV2.Requests;
+using CQRSAPI.Features.PeopleV2.Responses;
 using CQRSAPI.Helpers;
 using CQRSAPI.Messages;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CQRSAPI.Features.People.Controllers
+namespace CQRSAPI.Features.PeopleV2.Controllers
 {
 
     [Route("api/people"),
