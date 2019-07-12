@@ -21,15 +21,14 @@ namespace CQRSAPI.Features.People.Data
 
         public string ConnectionString => (string.IsNullOrEmpty(_connectionString) ? Startup.LocalTestConnectionString : _connectionString);
 
-        public CqrsApiPeopleSqlRepository()
-        { }
-
         public CqrsApiPeopleSqlRepository(string connectionString)
         {
             _connectionString = connectionString;
         }
 
-        public async Task<Person> AddAsync(Person item, CancellationToken cancellationToken)
+        public async Task<Person> AddAsync(
+            Person item,
+            CancellationToken cancellationToken)
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
@@ -42,7 +41,9 @@ namespace CQRSAPI.Features.People.Data
             }
         }
 
-        public async Task<Person> FindAsync(int id, CancellationToken cancellationToken)
+        public async Task<Person> FindAsync(
+            int id, 
+            CancellationToken cancellationToken)
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
@@ -65,7 +66,7 @@ namespace CQRSAPI.Features.People.Data
 
                 int offset = pageSize * (pageNumber - 1);
                 IEnumerable<Person> selectResults = await db.QueryAsync<Person>($"SELECT * FROM {TableName} " +
-                    (string.IsNullOrEmpty(wherePart) ? string.Empty : wherePart) +
+                    (outParams.Count > 0 ? wherePart : string.Empty) +
                     $"ORDER BY Id OFFSET {offset} ROWS " +
                     $"FETCH NEXT {pageSize} ROWS ONLY",
                     outParams.Count > 0 ? outParams : null);
@@ -73,7 +74,9 @@ namespace CQRSAPI.Features.People.Data
             }
         }
 
-        public async Task<int> DeleteAsync(int id, CancellationToken cancellationToken)
+        public async Task<int> DeleteAsync(
+            int id, 
+            CancellationToken cancellationToken)
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
@@ -84,7 +87,9 @@ namespace CQRSAPI.Features.People.Data
             }
         }
 
-        public async Task<int> UpdateAsync(Person item, CancellationToken cancellationToken)
+        public async Task<int> UpdateAsync(
+            Person item, 
+            CancellationToken cancellationToken)
         {
             using (IDbConnection db = new SqlConnection(ConnectionString))
             {
@@ -96,7 +101,9 @@ namespace CQRSAPI.Features.People.Data
             }
         }
 
-        public async Task<bool> Exists(int id, CancellationToken cancellationToken)
+        public async Task<bool> Exists(
+            int id, 
+            CancellationToken cancellationToken)
         {
             Person item = await FindAsync(id, cancellationToken);
             return (item != null);

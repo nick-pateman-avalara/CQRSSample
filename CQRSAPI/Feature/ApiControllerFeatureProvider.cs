@@ -9,15 +9,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace CQRSAPI.Feature
 {
-    public class ApiContollerFeatureProvider : IApplicationFeatureProvider<ControllerFeature>
+    public class ApiControllerFeatureProvider : IApplicationFeatureProvider<ControllerFeature>
     {
 
         private readonly IConfiguration _configuration;
         private readonly List<IFeature> _features;
 
-        public IServiceCollection Services { get; private set; }
+        public IServiceCollection Services { get; }
 
-        public ApiContollerFeatureProvider(
+        public ApiControllerFeatureProvider(
             IConfiguration configuration,
             IServiceCollection services)
         {
@@ -32,7 +32,7 @@ namespace CQRSAPI.Feature
             IConfigurationSection featuresConfig = _configuration.GetSection("Features");
             if (featuresConfig != null)
             {
-                foreach (Type entityType in typeof(ApiContollerFeatureProvider).GetTypeInfo().Assembly.GetTypes())
+                foreach (Type entityType in typeof(ApiControllerFeatureProvider).GetTypeInfo().Assembly.GetTypes())
                 {
                     if (!entityType.IsInterface && typeof(IFeature).IsAssignableFrom(entityType))
                     {

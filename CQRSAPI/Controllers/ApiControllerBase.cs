@@ -2,6 +2,7 @@
 using CQRSAPI.Extensions;
 using CQRSAPI.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
 namespace CQRSAPI.Controllers
@@ -25,17 +26,17 @@ namespace CQRSAPI.Controllers
                     }
                 case ApiResponse<T>.ResponseType.BadRequest:
                     {
-                        Logger.LogError("Bad Request.");
+                        Logger?.LogError("Bad Request.");
                         return (BadRequest(apiResponse.Errors.ToStringList()));
                     }
                 case ApiResponse<T>.ResponseType.NotFound:
                     {
-                        Logger.LogError("Not Found.");
+                        Logger?.LogError("Not Found.");
                         return (NotFound(notFoundReturnValue));
                     }
                 case ApiResponse<T>.ResponseType.Conflict:
                     {
-                        Logger.LogWarning("Conflict.");
+                        Logger?.LogWarning("Conflict.");
                         return (Conflict(conflictReturnValue));
                     }
                 default:
@@ -45,6 +46,14 @@ namespace CQRSAPI.Controllers
             }
         }
 
+        protected IActionResult InvalidModel(ModelStateDictionary modelState)
+        {
+            return (ProcessApiResponse(new ApiResponse<object>()
+            {
+                Result = ApiResponse<object>.ResponseType.BadRequest,
+                Errors = modelState.ToErrorList()
+            }));
+        }
 
     }
 

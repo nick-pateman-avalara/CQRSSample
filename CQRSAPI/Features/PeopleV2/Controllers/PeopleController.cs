@@ -1,15 +1,12 @@
-using System;
 using System.Net;
 using System.Threading.Tasks;
 using CQRSAPI.Controllers;
 using CQRSAPI.Feature;
 using CQRSAPI.Features.PeopleV2.Feature;
-using CQRSAPI.Features.PeopleV2.Messages;
 using CQRSAPI.Features.PeopleV2.Models;
 using CQRSAPI.Features.PeopleV2.Requests;
 using CQRSAPI.Features.PeopleV2.Responses;
 using CQRSAPI.Helpers;
-using CQRSAPI.Messages;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,7 +20,7 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
 
         private readonly IMediator _mediator;
 
-        public override ILogger Logger { get; protected set; }
+        public sealed override ILogger Logger { get; protected set; }
 
         public PeopleController(
             ILogger<PeopleController> logger,
@@ -47,34 +44,43 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
             int pageSize = 50,
             int pageNumber = 1)
         {
-            GetAllPeopleRequest request = new GetAllPeopleRequest()
+            if (ModelState.IsValid)
             {
-                PageSize = pageSize,
-                PageNumber = pageNumber,
-                QueryParams = QueryHelpers.ExtractQueryParamsFromRequest(HttpContext.Request, "pageSize", "pageNumber")
-            };
+                GetAllPeopleRequest request = new GetAllPeopleRequest()
+                {
+                    PageSize = pageSize,
+                    PageNumber = pageNumber,
+                    QueryParams = QueryHelpers.ExtractQueryParamsFromRequest(HttpContext.Request, "pageSize", "pageNumber")
+                };
 
-            GetAllPeopleResponse getAllPeopleResponse = await _mediator.Send(request);
-            return (ProcessApiResponse(getAllPeopleResponse));
+                GetAllPeopleResponse getAllPeopleResponse = await _mediator.Send(request);
+                return (ProcessApiResponse(getAllPeopleResponse));
+            }
+            else
+            {
+                return (InvalidModel(ModelState));
+            }
         }
 
         [HttpGet("{id}"), 
-         ProducesResponseType((int)HttpStatusCode.OK), 
+         ProducesResponseType(typeof(Person), (int)HttpStatusCode.OK), 
          ProducesResponseType((int)HttpStatusCode.BadRequest), 
          ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetPerson(int? id)
+        public async Task<IActionResult> GetPerson(int id)
         {
-            if (!id.HasValue)
+            if (ModelState.IsValid)
             {
-                return (BadRequest("Missing id parameter."));
+                GetPersonResponse response = await _mediator.Send(new GetPersonRequest() { Id = id });
+                return (ProcessApiResponse(response));
             }
-
-            GetPersonResponse response = await _mediator.Send(new GetPersonRequest() { Id = id.Value });
-            return (ProcessApiResponse(response));
+            else
+            {
+                return (InvalidModel(ModelState));
+            }
         }
 
         [HttpPost, 
-         ProducesResponseType((int)HttpStatusCode.OK), 
+         ProducesResponseType(typeof(Person), (int)HttpStatusCode.OK), 
          ProducesResponseType((int)HttpStatusCode.BadRequest),
          ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> CreatePerson([FromBody] Person person)
@@ -88,7 +94,7 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
             }
             else
             {
-                return (BadRequest("Request body Json data could not be deserialised to Person."));
+                return (InvalidModel(ModelState));
             }
         }
 
@@ -100,11 +106,6 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
             int id,
             [FromBody] Person person)
         {
-            if(person.Id != id)
-            {
-                return(BadRequest("Missing id parameter."));
-            }
-
             if (ModelState.IsValid)
             {
                 UpdatePersonResponse response = await _mediator.Send(new UpdatePersonRequest() { Person = person });
@@ -112,7 +113,7 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
             }
             else
             {
-                return (BadRequest("Request body Json data could not be deserialised to Person."));
+                return (InvalidModel(ModelState));
             }
         }
 
@@ -121,8 +122,15 @@ namespace CQRSAPI.Features.PeopleV2.Controllers
          ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            DeletePersonResponse response = await _mediator.Send(new DeletePersonRequest() { Id = id });
-            return (ProcessApiResponse(response));
+            if (ModelState.IsValid)
+            {
+                DeletePersonResponse response = await _mediator.Send(new DeletePersonRequest() { Id = id });
+                return (ProcessApiResponse(response));
+            }
+            else
+            {
+                return (InvalidModel(ModelState));
+            }
         }
 
     }

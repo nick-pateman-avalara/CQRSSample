@@ -3,12 +3,10 @@ using System.Threading.Tasks;
 using CQRSAPI.Controllers;
 using CQRSAPI.Feature;
 using CQRSAPI.Features.People.Feature;
-using CQRSAPI.Features.People.Messages;
 using CQRSAPI.Features.People.Models;
 using CQRSAPI.Features.People.Requests;
 using CQRSAPI.Features.People.Responses;
 using CQRSAPI.Helpers;
-using CQRSAPI.Messages;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

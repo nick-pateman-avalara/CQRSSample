@@ -10,7 +10,6 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using CQRSAPI.Feature;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using CQRSAPI.Messages;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -22,23 +21,21 @@ namespace CQRSAPI
     public class Startup
     {
 
-        private ILoggerFactory _loggerFactory;
-
         public static IConfiguration Configuration { get; private set; }
 
-        public static ApiContollerFeatureProvider ApiFeatureController { get; private set; }
+        public static ApiControllerFeatureProvider ApiFeatureController { get; private set; }
 
         public static string LocalTestConnectionString
         {
             get
             {
-                return (Configuration.GetSection("ConnectionStrings").GetValue<string>("LocalTest"));
+                IConfigurationSection configurationSection = Configuration.GetSection("ConnectionStrings");
+                return (configurationSection != null ? configurationSection.GetValue("LocalTest", string.Empty) : string.Empty);
             }
         }
 
-        public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public Startup(IHostingEnvironment env)
         {
-            _loggerFactory = loggerFactory;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", true, true)
@@ -78,7 +75,10 @@ namespace CQRSAPI
 
         private void ConfigureNServiceBusServices(IServiceCollection services)
         {
-            services.AddSingleton<IMessageTransport>(s => RabbitMqMessageTransport.Create(LocalTestConnectionString));
+            IMessageTransport messageTransport = RabbitMqMessageTransport.CreateAsync(Configuration)
+                .GetAwaiter()
+                .GetResult();
+            services.AddSingleton(s => messageTransport);
         }
 
         private void ConfigureCompressionServices(IServiceCollection services)
@@ -89,7 +89,7 @@ namespace CQRSAPI
 
         private void ConfigureMvcServices(IServiceCollection services)
         {
-            ApiFeatureController = new ApiContollerFeatureProvider(
+            ApiFeatureController = new ApiControllerFeatureProvider(
                 Configuration,
                 services);
             services.AddScoped<IApplicationFeatureProvider<ControllerFeature>>(s => ApiFeatureController);
@@ -100,7 +100,12 @@ namespace CQRSAPI
                     options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
                 })
                 .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(ApiFeatureController))
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                });
 
             ApiFeatureController.AddServices();
         }
@@ -147,14 +152,10 @@ namespace CQRSAPI
             IHostingEnvironment env, 
             IApplicationLifetime applicationLifetime)
         {
-            //if (env.IsDevelopment())
-            //{
-            //    app.UseDeveloperExceptionPage();
-            //}
-            //else
-            //{
-            //    app.UseHsts();
-            //}
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseRequestLocalization();
 

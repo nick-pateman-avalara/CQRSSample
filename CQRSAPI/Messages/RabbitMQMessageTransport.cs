@@ -1,5 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reflection;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using NServiceBus;
+using NServiceBus.Serialization;
 
 namespace CQRSAPI.Messages
 {
@@ -7,39 +12,70 @@ namespace CQRSAPI.Messages
     public class RabbitMqMessageTransport : IMessageTransport
     {
 
+        private readonly bool _enabled;
         private IEndpointInstance _endpoint;
 
-        public static RabbitMqMessageTransport Create(string connectionString)
+        public RabbitMqMessageTransport(bool enabled)
         {
-            RabbitMqMessageTransport instance = new RabbitMqMessageTransport();
-            Task createEndpointTask = instance.CreateEndpointAsync(connectionString);
-            createEndpointTask.Wait();
-            return (instance);
+            _enabled = enabled;
         }
 
         private async Task CreateEndpointAsync(string connectionString)
         {
-            EndpointConfiguration endpointConfiguration = new EndpointConfiguration("CQRSAPI.Messages.In");
+            EndpointConfiguration endpointConfiguration = new EndpointConfiguration(Assembly.GetExecutingAssembly().GetName().Name);
 
             TransportExtensions<RabbitMQTransport> transport = endpointConfiguration.UseTransport<RabbitMQTransport>();
             transport.UseDirectRoutingTopology();
             transport.ConnectionString(connectionString);
+            transport.Transactions(TransportTransactionMode.None);
 
             endpointConfiguration.EnableInstallers();
-            endpointConfiguration.UsePersistence<LearningPersistence>();
-            endpointConfiguration.SendFailedMessagesTo("CQRSAPI.Messages.Error");
+            SerializationExtensions<NewtonsoftSerializer> serialiser = endpointConfiguration.UseSerialization<NewtonsoftSerializer>();
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                Converters =
+                    {
+                        new StringEnumConverter()
+                    },
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            serialiser.Settings(settings);
+
+            endpointConfiguration.UsePersistence<InMemoryPersistence>();
+            endpointConfiguration.SendOnly();
 
             _endpoint = await Endpoint.Start(endpointConfiguration).ConfigureAwait(false);
         }
 
         public async Task SendAsync(MessageBase message)
         {
-            //I needed to manually create this Queue on RabbitMQ using the admin portal
-            //Ideally we would use an exchange that publishes to multiple queues, the
-            //topology would need to be changed from DirectRouting first.
-            SendOptions sendOptions = new SendOptions();
-            sendOptions.SetDestination("CQRSAPI.Messages.Out");
-            await _endpoint.Send(message, sendOptions).ConfigureAwait(false);
+            if(_enabled)
+            {
+                SendOptions sendOptions = new SendOptions();
+                sendOptions.SetDestination(Assembly.GetExecutingAssembly().GetName().Name);
+                await _endpoint.Send(message, sendOptions).ConfigureAwait(false);
+            }
+        }
+
+        public static async Task<RabbitMqMessageTransport> CreateAsync(IConfiguration configuration)
+        {
+            IConfigurationSection configSection = configuration.GetSection("NServiceBus");
+            bool enabled = configSection.GetValue("Enabled", false);
+            string connectionString = enabled ? configSection.GetValue("ConnectionString", string.Empty) : string.Empty;
+            return (await CreateAsync(enabled, connectionString));
+        }
+
+        public static async Task<RabbitMqMessageTransport> CreateAsync(
+            bool enabled,
+            string connectionString = "")
+        {
+            RabbitMqMessageTransport instance = new RabbitMqMessageTransport(enabled);
+            if (enabled)
+            {
+                await instance.CreateEndpointAsync(connectionString);
+            }
+            return (instance);
         }
 
     }

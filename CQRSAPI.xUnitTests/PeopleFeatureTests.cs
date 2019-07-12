@@ -22,7 +22,8 @@ namespace CQRSAPI.xUnitTests
 
         private Random _rnd;
         private CqrsApiPeopleSqlRepository _peopleSqlRepository;
-        private string _rabbitMqConnectionString = "host=localhost:32771";
+        private bool _enableNServiceBus = true;
+        private string _rabbitMqConnectionString = "host=localhost:32771"; //5672tcp
         private Person _created;
 
         private void Initialise()
@@ -53,7 +54,9 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(),
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             _created = createdPerson.Value;
@@ -75,7 +78,9 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(),
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             List<ModelError> errors = createdPerson.Errors;
@@ -100,7 +105,9 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(),
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
@@ -124,7 +131,9 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(),
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
@@ -148,7 +157,9 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(),
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
@@ -235,6 +246,36 @@ namespace CQRSAPI.xUnitTests
         }
 
         [Fact]
+        public async Task Given_UpdatePersonCqrsRequest_When_ProvidedWithAnExistingPersonId_Then_SuccessShouldBeReturned()
+        {
+            Initialise();
+
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            Assert.True(
+                _created != null,
+                "Unit test cannot be run before creating a user.");
+
+            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
+                _peopleSqlRepository,
+                new PersonValidator(), 
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
+
+            Person updated = new Person()
+            {
+                Id = _created.Id,
+                FirstName = Guid.NewGuid().ToString(),
+                LastName = Guid.NewGuid().ToString(),
+                Age = _rnd.Next(1, 101)
+            };
+            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = updated }, new CancellationToken());
+
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.Ok);
+        }
+
+        [Fact]
         public async Task Given_DeletePersonCqrsRequest_When_ProvidedWithAnExistingPersonId_Then_RecordShouldBeReturnedWithSuccess()
         {
             Initialise();
@@ -247,7 +288,9 @@ namespace CQRSAPI.xUnitTests
 
             DeletePersonRequestHandler handler = new DeletePersonRequestHandler(
                 _peopleSqlRepository,
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             DeletePersonResponse response = await handler.Handle(new DeletePersonRequest() { Id = _created.Id }, new CancellationToken());
 
             Assert.True(response.Result == ApiResponse<bool>.ResponseType.Ok);
@@ -260,7 +303,9 @@ namespace CQRSAPI.xUnitTests
 
             DeletePersonRequestHandler handler = new DeletePersonRequestHandler(
                 _peopleSqlRepository,
-                RabbitMqMessageTransport.Create(_rabbitMqConnectionString));
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
             DeletePersonResponse response = await handler.Handle(new DeletePersonRequest() { Id = 0 }, new CancellationToken());
 
             Assert.False(response.Result == ApiResponse<bool>.ResponseType.Ok);

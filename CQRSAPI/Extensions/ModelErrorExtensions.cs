@@ -15,6 +15,17 @@ namespace CQRSAPI.Extensions
                 .ToList());
         }
 
+        public static List<ModelError> ToErrorList(this ModelStateDictionary modelState)
+        {
+            List<ModelError> errors = new List<ModelError>();
+            IEnumerable<ModelErrorCollection> allModelErrors = modelState.Values.Select(mse => mse.Errors);
+            foreach (ModelErrorCollection curModelErrors in allModelErrors)
+            {
+                errors.AddRange(curModelErrors.ToList());
+            }
+            return (errors);
+        }
+
     }
 
 }

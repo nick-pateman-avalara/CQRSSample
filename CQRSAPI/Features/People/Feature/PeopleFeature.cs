@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
 using CQRSAPI.Data;
 using CQRSAPI.Feature;
 using CQRSAPI.Features.People.Controllers;
 using CQRSAPI.Features.People.Data;
 using CQRSAPI.Features.People.Models;
-using CQRSAPI.Messages;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CQRSAPI.Features.People.Feature
