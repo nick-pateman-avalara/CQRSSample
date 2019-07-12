@@ -25,7 +25,7 @@ namespace CQRSAPI.Features.PeopleV2.Models
             if (person.LastName.Length > 100) errors.Add(new ModelError("LastName is optional but must be between 1 and 100 chars long if present."));
             if (person.Age < 1 || person.Age > 100) errors.Add(new ModelError("Age must be between 1 and 100."));
 
-            if (errors.Count > 0)
+            if (errors.Count > 0 && _logger != null)
             {
                 _logger.LogError("Validation of Person failed.");
             }

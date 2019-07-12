@@ -17,7 +17,6 @@ namespace CQRSAPI.Feature
 
         void AddServices(IServiceCollection services);
 
-        Task Startup(IConfiguration configuration);
 
     }
 

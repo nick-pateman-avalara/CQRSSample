@@ -16,10 +16,14 @@ namespace CQRSAPI.Features.PeopleV2.RequestHandlers
     {
 
         private readonly IRepository<Person> _peopleRepository;
+        private readonly IMessageTransport _messageTransport;
 
-        public DeletePersonRequestHandler(IRepository<Person> peopleRepository)
+        public DeletePersonRequestHandler(
+            IRepository<Person> peopleRepository,
+            IMessageTransport messageTransport)
         {
             _peopleRepository = peopleRepository;
+            _messageTransport = messageTransport;
         }
   
         public async Task<DeletePersonResponse> Handle(DeletePersonRequest request, CancellationToken cancellationToken)
@@ -28,7 +32,7 @@ namespace CQRSAPI.Features.PeopleV2.RequestHandlers
             {
                 int rowsAffected = await _peopleRepository.DeleteAsync(request.Id, cancellationToken);
                 bool success = (rowsAffected == 1);
-                if(success) await RabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.DeletedPerson, Id = request.Id });
+                if(success) await _messageTransport.SendAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.DeletedPerson, Id = request.Id });
                 return (new DeletePersonResponse() { Result = ApiResponse<bool>.ResponseType.Ok, Value =  success});
             }
             else

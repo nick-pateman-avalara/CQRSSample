@@ -17,13 +17,16 @@ namespace CQRSAPI.Features.People.RequestHandlers
 
         private readonly IRepository<Person> _peopleRepository;
         private readonly IPersonValidator _personValidator;
+        private readonly IMessageTransport _messageTransport;
 
         public CreatePersonRequestHandler(
             IRepository<Person> peopleRepository,
-            IPersonValidator personValidator)
+            IPersonValidator personValidator,
+            IMessageTransport messageTransport)
         {
             _peopleRepository = peopleRepository;
             _personValidator = personValidator;
+            _messageTransport = messageTransport;
         }
   
         public async Task<CreatePersonResponse> Handle(CreatePersonRequest request, CancellationToken cancellationToken)
@@ -34,7 +37,7 @@ namespace CQRSAPI.Features.People.RequestHandlers
             }
 
             Person addPerson = await _peopleRepository.AddAsync(request.Person, cancellationToken);
-            await RabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id});
+            await _messageTransport.SendAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.CreatedPerson, Id = addPerson.Id});
             return (new CreatePersonResponse() { Result = ApiResponse<Person>.ResponseType.Ok, Value = addPerson });
         }
 

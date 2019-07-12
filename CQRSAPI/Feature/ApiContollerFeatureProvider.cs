@@ -65,14 +65,6 @@ namespace CQRSAPI.Feature
             }
         }
 
-        public void StartupFeatures()
-        {
-            foreach (IFeature feature in _features)
-            {
-                feature.Startup(_configuration);
-            }
-        }
-
         public IFeature GetFeatureByName(string name)
         {
             return (_features.FirstOrDefault(f => f.Name == name));

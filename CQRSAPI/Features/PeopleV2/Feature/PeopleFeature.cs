@@ -27,11 +27,6 @@ namespace CQRSAPI.Features.PeopleV2.Feature
             services.AddScoped<IPersonValidator, PersonValidator>();
         }
 
-        public async Task Startup(IConfiguration configuration)
-        {
-            await RabbitMqMessageTransport.InitialiseAsync(configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
-        }
-
         public static string GetName()
         {
             return (new PeopleFeature().Name);

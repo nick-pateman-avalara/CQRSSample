@@ -17,13 +17,16 @@ namespace CQRSAPI.Features.PeopleV2.RequestHandlers
 
         private readonly IRepository<Person> _peopleRepository;
         private readonly IPersonValidator _personValidator;
+        private readonly IMessageTransport _messageTransport;
 
         public UpdatePersonRequestHandler(
             IRepository<Person> peopleRepository,
-            IPersonValidator personValidator)
+            IPersonValidator personValidator,
+            IMessageTransport messageTransport)
         {
             _peopleRepository = peopleRepository;
             _personValidator = personValidator;
+            _messageTransport = messageTransport;
         }
 
         public async Task<UpdatePersonResponse> Handle(UpdatePersonRequest request, CancellationToken cancellationToken)
@@ -36,7 +39,7 @@ namespace CQRSAPI.Features.PeopleV2.RequestHandlers
             int affectedRows = await _peopleRepository.UpdateAsync(request.Person, cancellationToken);
             if (affectedRows > 0)
             {
-                await RabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.UpdatedPerson, Id = request.Person.Id });
+                await _messageTransport.SendAsync(new PersonEventMessage() { Op = PersonEventMessage.Operation.UpdatedPerson, Id = request.Person.Id });
                 return (new UpdatePersonResponse() { Result = ApiResponse<bool>.ResponseType.Ok });
             }
             else

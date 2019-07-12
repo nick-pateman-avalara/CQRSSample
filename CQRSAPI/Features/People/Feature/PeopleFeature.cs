@@ -26,11 +26,6 @@ namespace CQRSAPI.Features.People.Feature
             services.AddScoped<IPersonValidator, PersonValidator>();
         }
 
-        public async Task Startup(IConfiguration configuration)
-        {
-            await RabbitMqMessageTransport.InitialiseAsync(configuration.GetSection("ConnectionStrings").GetValue<string>("RabbitMQ"));
-        }
-
     }
 
 }

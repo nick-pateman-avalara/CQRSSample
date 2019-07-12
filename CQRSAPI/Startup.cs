@@ -12,28 +12,27 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using CQRSAPI.Feature;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using CQRSAPI.Messages;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
+using CQRSAPI.Middleware;
 
 namespace CQRSAPI
 {
     public class Startup
     {
 
-        //public Startup(IConfiguration configuration)
-        //{
-        //    Configuration = configuration;
-        //}
-
         private ILoggerFactory _loggerFactory;
 
         public static IConfiguration Configuration { get; private set; }
+
         public static ApiContollerFeatureProvider ApiFeatureController { get; private set; }
 
         public static string LocalTestConnectionString
         {
             get
             {
-                string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("LocalTest");
-                return (connectionString);
+                return (Configuration.GetSection("ConnectionStrings").GetValue<string>("LocalTest"));
             }
         }
 
@@ -50,9 +49,50 @@ namespace CQRSAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<ServiceFactory>(p => p.GetService);
+
+            ConfigureNServiceBusServices(services);
+
+            ConfigureCompressionServices(services);
+
+            //Caching?
+
+            ConfigureMvcServices(services);
+
+            //Node?
+
+            ConfigureCorsServices(services);
+
+            ConfigureMediatorServices(services);
+
+            //Authentication?
+
+            ConfigureSwaggerServices(services);
+
+            //Database?
+
+            //Aws?
+
+            //Container?
+        }
+
+        private void ConfigureNServiceBusServices(IServiceCollection services)
+        {
+            services.AddSingleton<IMessageTransport>(s => RabbitMqMessageTransport.Create(LocalTestConnectionString));
+        }
+
+        private void ConfigureCompressionServices(IServiceCollection services)
+        {
+            services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+            services.AddResponseCompression(options => { options.Providers.Add<GzipCompressionProvider>(); });
+        }
+
+        private void ConfigureMvcServices(IServiceCollection services)
+        {
             ApiFeatureController = new ApiContollerFeatureProvider(
                 Configuration,
                 services);
+            services.AddScoped<IApplicationFeatureProvider<ControllerFeature>>(s => ApiFeatureController);
 
             services.AddMvc(
                 options =>
@@ -62,13 +102,34 @@ namespace CQRSAPI
                 .ConfigureApplicationPartManager(apm => apm.FeatureProviders.Add(ApiFeatureController))
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            services.AddTransient<ServiceFactory>(p => p.GetService);
-            services.AddScoped<IApplicationFeatureProvider<ControllerFeature>, ApiContollerFeatureProvider>();
+            ApiFeatureController.AddServices();
+        }
+
+        private void ConfigureCorsServices(IServiceCollection services)
+        {
+            // TODO: tie CORS down to specific origins
+            services.AddCors(
+                options =>
+                {
+                    options.AddPolicy("AllowAllOrigins", builder =>
+                    {
+                        builder.AllowAnyOrigin();
+                        builder.AllowAnyHeader();
+                        builder.AllowAnyMethod();
+                        builder.AllowCredentials();
+                    });
+
+                });
+        }
+
+        private void ConfigureMediatorServices(IServiceCollection services)
+        {
             services.AddScoped<IMediator, Mediator>();
             services.AddMediatorHandlers(typeof(Startup).GetTypeInfo().Assembly);
+        }
 
-            ApiFeatureController.AddServices();
-
+        private void ConfigureSwaggerServices(IServiceCollection services)
+        {
             services.ConfigureSwaggerGen(options =>
             {
                 // UseFullTypeNameInSchemaIds replacement for .NET Core
@@ -81,26 +142,37 @@ namespace CQRSAPI
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(
+            IApplicationBuilder app, 
+            IHostingEnvironment env, 
+            IApplicationLifetime applicationLifetime)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseHsts();
-            }
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+            //else
+            //{
+            //    app.UseHsts();
+            //}
+
+            app.UseRequestLocalization();
+
+            app.UseResponseCompression();
+
+            //app.UseAuthentication();
+
+            app.UseCors("AllowAllOrigins"); // must come before app.UserMvc()
+
+            app.UseMiddleware(typeof(ErrorHandlingMiddleware));
+
+            app.UseMvc();
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "People API V1");
             });
-
-            //app.UseHttpsRedirection();
-
-            app.UseMvc();
         }
 
     }

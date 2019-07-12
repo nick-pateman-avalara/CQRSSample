@@ -9,15 +9,12 @@ namespace CQRSAPI.Messages
 
         private IEndpointInstance _endpoint;
 
-        public static RabbitMqMessageTransport Instance { get; private set; }
-
-        public static async Task InitialiseAsync(string connectionString)
+        public static RabbitMqMessageTransport Create(string connectionString)
         {
-            if(Instance == null)
-            {
-                Instance = new RabbitMqMessageTransport();
-                await Instance.CreateEndpointAsync(connectionString);
-            }
+            RabbitMqMessageTransport instance = new RabbitMqMessageTransport();
+            Task createEndpointTask = instance.CreateEndpointAsync(connectionString);
+            createEndpointTask.Wait();
+            return (instance);
         }
 
         private async Task CreateEndpointAsync(string connectionString)
@@ -43,14 +40,6 @@ namespace CQRSAPI.Messages
             SendOptions sendOptions = new SendOptions();
             sendOptions.SetDestination("CQRSAPI.Messages.Out");
             await _endpoint.Send(message, sendOptions).ConfigureAwait(false);
-        }
-
-        public static async Task SendIfInitialisedAsync(MessageBase message) 
-        {
-            if (Instance != null)
-            {
-                await Instance.SendAsync(message);
-            }
         }
 
     }

@@ -40,8 +40,6 @@ namespace CQRSAPI.Features.People.Controllers
             int pageSize = 50,
             int pageNumber = 1)
         {
-            await RabbitMqMessageTransport.SendIfInitialisedAsync(new PersonEventMessage());
-
             GetAllPeopleRequest request = new GetAllPeopleRequest()
             {
                 PageSize = pageSize,
