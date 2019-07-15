@@ -246,36 +246,6 @@ namespace CQRSAPI.xUnitTests
         }
 
         [Fact]
-        public async Task Given_UpdatePersonCqrsRequest_When_ProvidedWithAnExistingPersonId_Then_SuccessShouldBeReturned()
-        {
-            Initialise();
-
-            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
-
-            Assert.True(
-                _created != null,
-                "Unit test cannot be run before creating a user.");
-
-            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
-                _peopleSqlRepository,
-                new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
-
-            Person updated = new Person()
-            {
-                Id = _created.Id,
-                FirstName = Guid.NewGuid().ToString(),
-                LastName = Guid.NewGuid().ToString(),
-                Age = _rnd.Next(1, 101)
-            };
-            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = updated }, new CancellationToken());
-
-            Assert.True(response.Result == ApiResponse<bool>.ResponseType.Ok);
-        }
-
-        [Fact]
         public async Task Given_DeletePersonCqrsRequest_When_ProvidedWithAnExistingPersonId_Then_RecordShouldBeReturnedWithSuccess()
         {
             Initialise();
@@ -311,6 +281,148 @@ namespace CQRSAPI.xUnitTests
             Assert.False(response.Result == ApiResponse<bool>.ResponseType.Ok);
         }
 
+
+        [Fact]
+        public async Task Given_UpdatePersonCqrsRequest_When_ProvidedWithAnExistingPersonId_Then_SuccessShouldBeReturned()
+        {
+            Initialise();
+
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            Assert.True(
+                _created != null,
+                "Unit test cannot be run before creating a user.");
+
+            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
+                _peopleSqlRepository,
+                new PersonValidator(null),
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
+
+            Person updated = new Person()
+            {
+                Id = _created.Id,
+                FirstName = Guid.NewGuid().ToString(),
+                LastName = Guid.NewGuid().ToString(),
+                Age = _rnd.Next(1, 101)
+            };
+            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = updated }, new CancellationToken());
+
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.Ok);
+        }
+
+        [Fact]
+        public async Task Given_UpdatePersonCqrsRequest_When_FirstNameIsMissing_Then_FailureShouldBeReturnedWithModelErrorList()
+        {
+            Initialise();
+
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            Assert.True(
+                _created != null,
+                "Unit test cannot be run before creating a user.");
+
+            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
+                _peopleSqlRepository,
+                new PersonValidator(null),
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
+
+            _created.FirstName = String.Empty;
+
+            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = _created }, new CancellationToken());
+
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.BadRequest);
+            Assert.True(response.Errors != null);
+            Assert.True(response.Errors.Count == 1);
+            Assert.Contains("FirstName", response.Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task Given_UpdatePersonCqrsRequest_When_LastNameIsInvalidLength_Then_FailureShouldBeReturnedWithModelErrorList()
+        {
+            Initialise();
+
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            Assert.True(
+                _created != null,
+                "Unit test cannot be run before creating a user.");
+
+            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
+                _peopleSqlRepository,
+                new PersonValidator(null),
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
+
+            _created.LastName = new string('a', 101);
+
+            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = _created }, new CancellationToken());
+
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.BadRequest);
+            Assert.True(response.Errors != null);
+            Assert.True(response.Errors.Count == 1);
+            Assert.Contains("LastName", response.Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task Given_UpdatePersonCqrsRequest_When_AgeIsLessThan1_Then_FailureShouldBeReturnedWithModelErrorList()
+        {
+            Initialise();
+
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            Assert.True(
+                _created != null,
+                "Unit test cannot be run before creating a user.");
+
+            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
+                _peopleSqlRepository,
+                new PersonValidator(null),
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
+
+            _created.Age = -1;
+
+            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = _created }, new CancellationToken());
+
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.BadRequest);
+            Assert.True(response.Errors != null);
+            Assert.True(response.Errors.Count == 1);
+            Assert.Contains("Age", response.Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task Given_UpdatePersonCqrsRequest_When_AgeIsGreaterThan100_Then_FailureShouldBeReturnedWithModelErrorList()
+        {
+            Initialise();
+
+            await Given_CreatePersonCqrsRequest_When_PersonDataIsValid_Then_RecordShouldBeCreatedAndSuccessReturnedWithRecord();
+
+            Assert.True(
+                _created != null,
+                "Unit test cannot be run before creating a user.");
+
+            UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
+                _peopleSqlRepository,
+                new PersonValidator(null),
+                await RabbitMqMessageTransport.CreateAsync(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString));
+
+            _created.Age = 101;
+
+            UpdatePersonResponse response = await handler.Handle(new UpdatePersonRequest() { Person = _created }, new CancellationToken());
+
+            Assert.True(response.Result == ApiResponse<bool>.ResponseType.BadRequest);
+            Assert.True(response.Errors != null);
+            Assert.True(response.Errors.Count == 1);
+            Assert.Contains("Age", response.Errors[0].ErrorMessage);
+        }
 
     }
 
