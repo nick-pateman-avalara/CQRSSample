@@ -13,6 +13,7 @@ using CQRSAPI.Features.People.Responses;
 using CQRSAPI.Responses;
 using Xunit;
 using CQRSAPI.Messages;
+using CQRSAPI.Providers;
 
 namespace CQRSAPI.xUnitTests
 {
@@ -36,7 +37,8 @@ namespace CQRSAPI.xUnitTests
                 { "Initial Catalog", "CQRSAPIDB" },
                 { "Integrated Security", "true" }
             };
-            _peopleSqlRepository = new CqrsApiPeopleSqlRepository(dbConnectionStringBuilder.ToString());
+            AppSettings appSettings = new AppSettings() {ConnectionString = dbConnectionStringBuilder.ToString()};
+            _peopleSqlRepository = new CqrsApiPeopleSqlRepository(appSettings);
         }
 
         [Fact]

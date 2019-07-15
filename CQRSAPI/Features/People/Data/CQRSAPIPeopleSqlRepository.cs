@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CQRSAPI.Data;
 using CQRSAPI.Features.People.Models;
 using CQRSAPI.Helpers;
+using CQRSAPI.Providers;
 using Dapper;
 
 namespace CQRSAPI.Features.People.Data
@@ -15,22 +16,20 @@ namespace CQRSAPI.Features.People.Data
     public class CqrsApiPeopleSqlRepository : IRepository<Person>
     {
 
-        private readonly string _connectionString;
+        private readonly AppSettings _appSettings;
 
         public string TableName => "People";
 
-        public string ConnectionString => (string.IsNullOrEmpty(_connectionString) ? Startup.LocalTestConnectionString : _connectionString);
-
-        public CqrsApiPeopleSqlRepository(string connectionString)
+        public CqrsApiPeopleSqlRepository(AppSettings appSettings)
         {
-            _connectionString = connectionString;
+            _appSettings = appSettings;
         }
 
         public async Task<Person> AddAsync(
             Person item,
             CancellationToken cancellationToken)
         {
-            using (IDbConnection db = new SqlConnection(ConnectionString))
+            using (IDbConnection db = new SqlConnection(_appSettings.ConnectionString))
             {
                 string sqlQuery = $"INSERT INTO {TableName} " +
                                   "VALUES (@FirstName, @LastName, @Age); " +
@@ -45,7 +44,7 @@ namespace CQRSAPI.Features.People.Data
             int id, 
             CancellationToken cancellationToken)
         {
-            using (IDbConnection db = new SqlConnection(ConnectionString))
+            using (IDbConnection db = new SqlConnection(_appSettings.ConnectionString))
             {
                 IEnumerable<Person> selectResults = await db.QueryAsync<Person>($"SELECT TOP 1 * FROM {TableName} " +
                                                                                 "WHERE Id = @Id ",
@@ -60,7 +59,7 @@ namespace CQRSAPI.Features.People.Data
             List<KeyValuePair<string, string>> queryParams,
             CancellationToken cancellationToken)
         {
-            using (IDbConnection db = new SqlConnection(ConnectionString))
+            using (IDbConnection db = new SqlConnection(_appSettings.ConnectionString))
             {
                 string wherePart = QueryHelpers.Generate<Person>(queryParams, out var outParams);
 
@@ -78,7 +77,7 @@ namespace CQRSAPI.Features.People.Data
             int id, 
             CancellationToken cancellationToken)
         {
-            using (IDbConnection db = new SqlConnection(ConnectionString))
+            using (IDbConnection db = new SqlConnection(_appSettings.ConnectionString))
             {
                 int rowsAffected = await db.ExecuteAsync($"DELETE FROM {TableName} " + 
                                                          "WHERE Id = @Id",
@@ -91,7 +90,7 @@ namespace CQRSAPI.Features.People.Data
             Person item, 
             CancellationToken cancellationToken)
         {
-            using (IDbConnection db = new SqlConnection(ConnectionString))
+            using (IDbConnection db = new SqlConnection(_appSettings.ConnectionString))
             {
                 string sqlQuery = $"UPDATE {TableName} SET FirstName = @FirstName, " +
                                   "LastName = @LastName " + 

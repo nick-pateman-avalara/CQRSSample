@@ -15,6 +15,8 @@ using CQRSAPI.Messages;
 using Microsoft.AspNetCore.ResponseCompression;
 using System.IO.Compression;
 using CQRSAPI.Middleware;
+using CQRSAPI.Providers;
+using Microsoft.EntityFrameworkCore.Design.Internal;
 
 namespace CQRSAPI
 {
@@ -47,6 +49,8 @@ namespace CQRSAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<ServiceFactory>(p => p.GetService);
+
+            ConfigureAppSettings(services);
 
             ConfigureNServiceBusServices(services);
 
@@ -144,6 +148,14 @@ namespace CQRSAPI
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "People API", Version = "v1" });
+            });
+        }
+
+        private void ConfigureAppSettings(IServiceCollection services)
+        {
+            services.AddSingleton<AppSettings>(x => new AppSettings
+            {
+                ConnectionString = LocalTestConnectionString
             });
         }
 
