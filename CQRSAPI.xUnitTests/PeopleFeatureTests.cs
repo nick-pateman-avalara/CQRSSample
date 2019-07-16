@@ -37,7 +37,7 @@ namespace CQRSAPI.xUnitTests
                 { "Initial Catalog", "CQRSAPIDB" },
                 { "Integrated Security", "true" }
             };
-            AppSettings appSettings = new AppSettings() {ConnectionString = dbConnectionStringBuilder.ToString()};
+            AppSettings appSettings = new AppSettings(null) {ConnectionString = dbConnectionStringBuilder.ToString()};
             _peopleSqlRepository = new CqrsApiPeopleSqlRepository(appSettings);
         }
 

@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.ResponseCompression;
 using System.IO.Compression;
 using CQRSAPI.Middleware;
 using CQRSAPI.Providers;
-using Microsoft.EntityFrameworkCore.Design.Internal;
 
 namespace CQRSAPI
 {
@@ -153,10 +152,7 @@ namespace CQRSAPI
 
         private void ConfigureAppSettings(IServiceCollection services)
         {
-            services.AddSingleton<AppSettings>(x => new AppSettings
-            {
-                ConnectionString = LocalTestConnectionString
-            });
+            services.AddSingleton<AppSettings, AppSettings>();
         }
 
         public void Configure(
