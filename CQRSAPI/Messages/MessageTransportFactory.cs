@@ -27,7 +27,7 @@ namespace CQRSAPI.Messages
             bool enabled,
             string connectionString = "") where T: IMessageTransport
         {
-            IMessageTransport instance = null;
+            IMessageTransport instance;
             if (typeof(T) == typeof(RabbitMqMessageTransport))
             {
                 RabbitMqMessageTransport rabbitInstance = new RabbitMqMessageTransport(enabled);
