@@ -19,8 +19,17 @@ namespace CQRSAPI.Messages
         {
             IConfigurationSection configSection = _configuration.GetSection("NServiceBus");
             bool enabled = configSection.GetValue("Enabled", false);
-            string connectionString = enabled ? configSection.GetValue("ConnectionString", string.Empty) : string.Empty;
-            return (await CreateAsync<T>(enabled, connectionString));
+            object parameter = null;
+            if (typeof(T) == typeof(RabbitMqMessageTransport))
+            {
+                parameter = enabled ? configSection.GetValue("ConnectionString", string.Empty) : string.Empty;
+            }
+            else
+            {
+                throw new NotSupportedException($"Type '{typeof(T).Name}' is not supported by MessageTransportFactory.");
+            }
+
+            return (await CreateAsync<T>(enabled, parameter));
         }
 
         public static async Task<T> CreateAsync<T>(
