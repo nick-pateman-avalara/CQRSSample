@@ -19,7 +19,7 @@ namespace CQRSAPI.Messages
         {
             IConfigurationSection configSection = _configuration.GetSection("NServiceBus");
             bool enabled = configSection.GetValue("Enabled", false);
-            object parameter = null;
+            object parameter;
             if (typeof(T) == typeof(RabbitMqMessageTransport))
             {
                 parameter = enabled ? configSection.GetValue("ConnectionString", string.Empty) : string.Empty;
