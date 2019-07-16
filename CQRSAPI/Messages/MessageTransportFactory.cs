@@ -25,13 +25,13 @@ namespace CQRSAPI.Messages
 
         public static async Task<T> CreateAsync<T>(
             bool enabled,
-            string connectionString = "") where T: IMessageTransport
+            object parameter = null) where T: IMessageTransport
         {
             IMessageTransport instance;
             if (typeof(T) == typeof(RabbitMqMessageTransport))
             {
                 RabbitMqMessageTransport rabbitInstance = new RabbitMqMessageTransport(enabled);
-                await rabbitInstance.InitialiseAsync(connectionString);
+                await rabbitInstance.InitialiseAsync(parameter);
                 instance = rabbitInstance;
             }
             else
