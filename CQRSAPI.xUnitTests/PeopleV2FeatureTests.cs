@@ -23,6 +23,7 @@ namespace CQRSAPI.xUnitTests
 
         private Random _rnd;
         private CqrsApiPeopleSqlRepository _peopleSqlRepository;
+        private IMessageTransport _messageTransport;
         private bool _enableNServiceBus = true;
         private string _rabbitMqConnectionString = "host=localhost:32771";  //5672tcp
         private Person _created;
@@ -39,6 +40,12 @@ namespace CQRSAPI.xUnitTests
             };
             AppSettings appSettings = new AppSettings(null) { ConnectionString = dbConnectionStringBuilder.ToString() };
             _peopleSqlRepository = new CqrsApiPeopleSqlRepository(appSettings);
+
+            _messageTransport = MessageTransportFactory.CreateAsync<RabbitMqMessageTransport>(
+                    _enableNServiceBus,
+                    _rabbitMqConnectionString)
+                .GetAwaiter()
+                .GetResult();
         }
 
         [Fact]
@@ -56,9 +63,7 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             _created = createdPerson.Value;
@@ -80,9 +85,7 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             List<ModelError> errors = createdPerson.Errors;
@@ -107,9 +110,7 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
@@ -133,9 +134,7 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
@@ -159,9 +158,7 @@ namespace CQRSAPI.xUnitTests
             CreatePersonRequestHandler handler = new CreatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             CreatePersonResponse createdPerson = await handler.Handle(new CreatePersonRequest() { Person = person }, new CancellationToken());
 
             Assert.True(createdPerson.Result == ApiResponse<Person>.ResponseType.BadRequest);
@@ -260,9 +257,7 @@ namespace CQRSAPI.xUnitTests
 
             DeletePersonRequestHandler handler = new DeletePersonRequestHandler(
                 _peopleSqlRepository,
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             DeletePersonResponse response = await handler.Handle(new DeletePersonRequest() { Id = _created.Id }, new CancellationToken());
 
             Assert.True(response.Result == ApiResponse<bool>.ResponseType.Ok);
@@ -275,9 +270,7 @@ namespace CQRSAPI.xUnitTests
 
             DeletePersonRequestHandler handler = new DeletePersonRequestHandler(
                 _peopleSqlRepository,
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
             DeletePersonResponse response = await handler.Handle(new DeletePersonRequest() { Id = 0 }, new CancellationToken());
 
             Assert.False(response.Result == ApiResponse<bool>.ResponseType.Ok);
@@ -298,9 +291,7 @@ namespace CQRSAPI.xUnitTests
             UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
 
             Person updated = new Person()
             {
@@ -328,9 +319,7 @@ namespace CQRSAPI.xUnitTests
             UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
 
             _created.FirstName = String.Empty;
 
@@ -356,9 +345,7 @@ namespace CQRSAPI.xUnitTests
             UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
 
             _created.LastName = new string('a', 101);
 
@@ -384,9 +371,7 @@ namespace CQRSAPI.xUnitTests
             UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
 
             _created.Age = -1;
 
@@ -412,9 +397,7 @@ namespace CQRSAPI.xUnitTests
             UpdatePersonRequestHandler handler = new UpdatePersonRequestHandler(
                 _peopleSqlRepository,
                 new PersonValidator(null),
-                await RabbitMqMessageTransport.CreateAsync(
-                    _enableNServiceBus,
-                    _rabbitMqConnectionString));
+                _messageTransport);
 
             _created.Age = 101;
 

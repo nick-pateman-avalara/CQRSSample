@@ -26,15 +26,6 @@ namespace CQRSAPI
 
         public static ApiControllerFeatureProvider ApiFeatureController { get; private set; }
 
-        public static string LocalTestConnectionString
-        {
-            get
-            {
-                IConfigurationSection configurationSection = Configuration.GetSection("ConnectionStrings");
-                return (configurationSection != null ? configurationSection.GetValue("LocalTest", string.Empty) : string.Empty);
-            }
-        }
-
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -78,7 +69,8 @@ namespace CQRSAPI
 
         private void ConfigureNServiceBusServices(IServiceCollection services)
         {
-            IMessageTransport messageTransport = RabbitMqMessageTransport.CreateAsync(Configuration)
+            MessageTransportFactory messageTransportFactory = new MessageTransportFactory(Configuration);
+            IMessageTransport messageTransport = messageTransportFactory.CreateAsync<RabbitMqMessageTransport>()
                 .GetAwaiter()
                 .GetResult();
             services.AddSingleton(s => messageTransport);

@@ -20,8 +20,10 @@ namespace CQRSAPI.Messages
             _enabled = enabled;
         }
 
-        private async Task CreateEndpointAsync(string connectionString)
+        public async Task InitialiseAsync(object parameter)
         {
+            string connectionString = (string) parameter;
+
             EndpointConfiguration endpointConfiguration = new EndpointConfiguration(Assembly.GetExecutingAssembly().GetName().Name);
 
             TransportExtensions<RabbitMQTransport> transport = endpointConfiguration.UseTransport<RabbitMQTransport>();
@@ -56,26 +58,6 @@ namespace CQRSAPI.Messages
                 sendOptions.SetDestination(Assembly.GetExecutingAssembly().GetName().Name);
                 await _endpoint.Send(message, sendOptions).ConfigureAwait(false);
             }
-        }
-
-        public static async Task<RabbitMqMessageTransport> CreateAsync(IConfiguration configuration)
-        {
-            IConfigurationSection configSection = configuration.GetSection("NServiceBus");
-            bool enabled = configSection.GetValue("Enabled", false);
-            string connectionString = enabled ? configSection.GetValue("ConnectionString", string.Empty) : string.Empty;
-            return (await CreateAsync(enabled, connectionString));
-        }
-
-        public static async Task<RabbitMqMessageTransport> CreateAsync(
-            bool enabled,
-            string connectionString = "")
-        {
-            RabbitMqMessageTransport instance = new RabbitMqMessageTransport(enabled);
-            if (enabled)
-            {
-                await instance.CreateEndpointAsync(connectionString);
-            }
-            return (instance);
         }
 
     }
